@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 public class CsvParserService {
     /* T: O que essa classe deve fazer:
     Processa um arquivo CSV enviado via upload e converte suas linhas em DTOs.
+        Obs: ser compatível com .csv e .xlsx
 
     Importante lembrar:
       @param file - Arquivo multipart é a interface padrão do Spring MVC para manipular arquivos enviados por formulários ou requisições HTTP
