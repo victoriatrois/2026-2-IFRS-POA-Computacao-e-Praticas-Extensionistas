@@ -6,8 +6,8 @@ University extension project by IFRS Campus Porto Alegre dedicated to the evalua
 
 ## 🚀 Tech Stack
 
-- **Backend**: Java 21, Spring Boot, Spring Data JPA, Hibernate, Flyway Migrations, Maven
-- **Database**: PostgreSQL 17
+- **Backend**: Java 25, Spring Boot 4.1, Spring Data JPA, Hibernate, Flyway Migrations, Maven
+- **Database**: PostgreSQL 18
 - **Frontend**: Next.js (React), TypeScript, Tailwind CSS
 - **Containerization**: Docker, Docker Compose
 
