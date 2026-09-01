@@ -127,12 +127,15 @@ EVALUATOR
 ```text
 users
 ----------------
-id
+uuid
 name
+surname
 email
 password_hash
 role
+cpf
 created_at
+updated_at
 ```
 
 Roles:
