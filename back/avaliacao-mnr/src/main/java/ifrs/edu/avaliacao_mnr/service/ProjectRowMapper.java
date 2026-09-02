@@ -1,6 +1,6 @@
-package ifrs.edu.avaliacao_mnr.project.service;
+package ifrs.edu.avaliacao_mnr.service;
 
-import ifrs.edu.avaliacao_mnr.project.dto.ProjectImportDTO;
+import ifrs.edu.avaliacao_mnr.dto.ProjectImportDTO;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -12,25 +12,25 @@ import java.util.Map;
 import java.util.function.Function;
 
 /*
-T: O que esta classe faz?
-Utilitário que centraliza o mapeamento das colunas da planilha.
-Responsável por normalizar os nomes dos cabeçalhos, tolerar variações de escrita (aliases/substrings) e garantir que tanto a leitura de CSV quanto a de Excel sigam as mesmas regras de extração.
+What this class does:
+Utility that centralizes the mapping of spreadsheet columns.
+Responsible for normalizing header names, tolerating writing variations (aliases/substrings), and ensuring that both CSV and Excel reading follow the exact same extraction rules.
 */
 final class ProjectRowMapper {
     /*
-     DICIONÁRIO DE MAPEAMENTO DE COLUNAS (De -> Para)
+     COLUMN MAPPING DICTIONARY (From -> To)
 
-     As constantes abaixo representam os campos internos do nosso sistema (DTO). O bloco estático inicializa as regras de como encontrar essas colunas na planilha:
+     The constants below represent the internal fields of our system (DTO). The static block initializes the rules on how to find these columns in the spreadsheet:
 
-     1. EXACT_ALIASES (Busca Exata): Lista de possíveis nomes exatos para a coluna.
-     - O primeiro item da lista é sempre o nome real usado na exportação atual do sistema.
-     - Os demais são variações seguras para evitar quebra caso a planilha mude.
+     1. EXACT_ALIASES (Exact Match): List of possible exact names for the column.
+     - The first item in the list is always the real name used in the system's current export.
+     - The others are safe variations to prevent breaking if the spreadsheet changes.
 
-     2. CONTAINS_FALLBACK (Busca Parcial): Usado caso a busca exata falhe.
-     - Procura por palavras-chave (ex: "pdf", "cpf") dentro do cabeçalho.
-     - Aplicado apenas em campos exclusivos. Não é usado para campos como "nome", pois a palavra aparece em muitas colunas (participante, projeto, instituição), o que causaria falsos positivos.
+     2. CONTAINS_FALLBACK (Partial Match): Used in case the exact match fails.
+     - Looks for keywords (e.g., "pdf", "cpf") inside the header.
+     - Applied only to exclusive fields. It is not used for fields like "name", because the word appears in many columns (participant, project, institution), which would cause false positives.
 
-     NOTA: Atualmente a coluna de CPF ("person.cpf") vem vazio na exportação. Por isso, é melhor avaliarmos o uso de um e-mail ou UUID como identificador principal no futuro.
+     NOTE: Currently, the CPF column ("person.cpf") comes empty in the export. Therefore, it is best to evaluate using an email or UUID as the primary identifier in the future.
      */
 
     static final String PROJECT_NAME = "projectName";
@@ -83,96 +83,101 @@ final class ProjectRowMapper {
     }
 
     /*
-    # T: Normaliza um cabeçalho para comparação
-    - Remove acentos, deixa minúsculo e tranformando caracteres não alfanuméricos em underline
-        ex: "Qual é o Nível?" vira "qual_e_o_nivel"
+      # Normalizes a header for comparison
+      - Removes accents, converts to lowercase, and changes non-alphanumeric characters into underscores
+        e.g.: "Qual é o Nível?" becomes "qual_e_o_nivel"
      */
     static String normalize(String value) {
         if (value == null || value.isBlank()) {
             return "";
         }
-        String semAcentos = Normalizer.normalize(value.trim(), Normalizer.Form.NFD)
+        String withoutAccents = Normalizer.normalize(value.trim(), Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "");
-        String minusculo = semAcentos.toLowerCase(Locale.ROOT);
-        String comUnderscore = minusculo.replaceAll("[^a-z0-9]+", "_");
-        return comUnderscore.replaceAll("^_+", "").replaceAll("_+$", "");
+        String lowerCase = withoutAccents.toLowerCase(Locale.ROOT);
+        String withUnderscore = lowerCase.replaceAll("[^a-z0-9]+", "_");
+        return withUnderscore.replaceAll("^_+", "").replaceAll("_+$", "");
     }
 
     /*
-     T: # Mapeia os cabeçalhos originais do arquivo para os campos internos do sistema (DTO).
-     - Para garantir performance na leitura de planilhas com milhares de registros, o método é executado uma única vez por arquivo (na leitura da 1ª linha) e não a cada iteração de linha.
+      Maps the file's original headers to the system's internal fields (DTO).
+      - To ensure performance when reading spreadsheets with thousands of records, 
+      the method is executed only once per file (when reading the 1st row) and not on every row iteration.
 
-     ## Fluxo de resolução:
-        - Normaliza os cabeçalhos do arquivo recebido (remove acentos, espaços, etc.)
-        - Para cada campo necessário no sistema, tenta encontrar a coluna ideal usando busca exata.
-        - Se a busca exata falhar, tenta encontrar por palavra-chave (busca parcial/substring).
+      Resolution flow:
+        - Normalizes the received file's headers (removes accents, spaces, etc.)
+        - For each required field in the system, tries to find the ideal column using an exact match.
+        - If the exact match fails, tries to find it by keyword (partial match/substring).
 
-     Notas:
-     @param originalHeaders -> Lista com os nomes dos cabeçalhos exatamente como aparecem no arquivo.
-     @return -> Um mapa onde a Chave é o campo do sistema (ex: "projectName") e o Valor é o nome real da coluna lida no arquivo (ex: "Nome do Projeto").
-            OBS: O valor será NULL caso a coluna correspondente não seja encontrada na planilha.
+      Notes:
+      @param originalHeaders -> List with the header names exactly as they appear in the file.
+      @return -> A map where the Key is the system field (e.g.: "projectName") and the Value is
+      the real name of the column read from the file (e.g.: "Nome do Projeto").
+             NOTE: The value will be NULL if the corresponding column is not found in the spreadsheet.
      */
     static Map<String, String> resolveHeaderMap(Collection<String> originalHeaders) {
-        Map<String, String> normalizadoParaOriginal = new LinkedHashMap<>();
+        Map<String, String> normalizedToOriginal = new LinkedHashMap<>();
         for (String original : originalHeaders) {
-            normalizadoParaOriginal.putIfAbsent(normalize(original), original);
+            normalizedToOriginal.putIfAbsent(normalize(original), original);
         }
 
-        Map<String, String> campoParaCabecalho = new LinkedHashMap<>();
+        Map<String, String> fieldToHeader = new LinkedHashMap<>();
         for (Map.Entry<String, List<String>> entry : EXACT_ALIASES.entrySet()) {
-            String campo = entry.getKey();
-            String encontrado = matchExato(entry.getValue(), normalizadoParaOriginal);
-            if (encontrado == null) {
-                encontrado = matchPorSubstring(CONTAINS_FALLBACK.get(campo), normalizadoParaOriginal);
+            String field = entry.getKey();
+            String found = exactMatch(entry.getValue(), normalizedToOriginal);
+            if (found == null) {
+                found = substringMatch(CONTAINS_FALLBACK.get(field), normalizedToOriginal);
             }
-            campoParaCabecalho.put(campo, encontrado);
+            fieldToHeader.put(field, found);
         }
-        return campoParaCabecalho;
+        return fieldToHeader;
     }
 
     /*
-     T: # Converte os dados de uma única linha da planilha em um objeto ProjectImportDTO.
-     - A grande vantagem deste método é que ele serve tanto para arquivos CSV quanto para planilhas do Excel. Ele não precisa saber qual é o formato do arquivo: ele apenas recebe uma regra pronta (o métodd valorPorCabecalho) que já sabe como pegar a info correta da coluna na linha que está sendo lida no momento.
+      # Converts data from a single spreadsheet row into a ProjectImportDTO object.
+      - The big advantage of this method is that it works for both CSV files and Excel spreadsheets. 
+      It does not need to know the file format: it just receives a ready rule (the valueByHeader method)
+      that already knows how to get the correct info from the column in the current row being read.
 
-     Regra de Validação: Linhas que não possuam o título do projeto preenchido são consideradas dados "sujos" ou vazios. Nesses casos, a conversão é abortada para não gerar lixo no banco de dados.
+      Validation Rule: Rows that do not have the project title filled are considered "dirty" or empty data.
+      In these cases, the conversion is aborted to avoid generating garbage in the database.
 
-     Notas:
-      @param campoParaCabecalho -> O mapa resolvido pelo {@link #resolveHeaderMap}, ligando os campos do sistema aos nomes reais das colunas da planilha.
-      @param valorPorCabecalho -> Uma função lambda que recebe o nome de um cabeçalho e devolve o valor contido na célula da linha atual.
-     @return -> O objeto ProjectImportDTO preenchido e com dados formatados ou NULL.
+      Notes:
+       @param fieldToHeader -> The map resolved by {@link #resolveHeaderMap}, linking the system fields to the real spreadsheet column names.
+       @param valueByHeader -> A lambda function that receives a header name and returns the value contained in the cell of the current row.
+      @return -> The populated ProjectImportDTO object with formatted data or NULL.
      */
-    static ProjectImportDTO buildDto(Map<String, String> campoParaCabecalho, Function<String, String> valorPorCabecalho) {
-        String projectName = limpar(resolver(campoParaCabecalho, valorPorCabecalho, PROJECT_NAME));
+    static ProjectImportDTO buildDto(Map<String, String> fieldToHeader, Function<String, String> valueByHeader) {
+        String projectName = cleanValue(resolve(fieldToHeader, valueByHeader, PROJECT_NAME));
         if (projectName == null) {
-            return null; // sem título -> linha "suja", deve ser ignorada
+            return null; // missing title -> "dirty" line, should be ignored
         }
 
         return new ProjectImportDTO(
                 projectName,
-                limpar(resolver(campoParaCabecalho, valorPorCabecalho, PDF_URL)),
-                limpar(resolver(campoParaCabecalho, valorPorCabecalho, LEVEL)),
-                limpar(resolver(campoParaCabecalho, valorPorCabecalho, VIDEO_URL)),
-                limpar(resolver(campoParaCabecalho, valorPorCabecalho, PARTICIPANT_NAME)),
-                limparCpf(resolver(campoParaCabecalho, valorPorCabecalho, PARTICIPANT_CPF)),
-                limpar(resolver(campoParaCabecalho, valorPorCabecalho, PARTICIPANT_EMAIL)),
-                limpar(resolver(campoParaCabecalho, valorPorCabecalho, INSTITUTION_NAME))
+                cleanValue(resolve(fieldToHeader, valueByHeader, PDF_URL)),
+                cleanValue(resolve(fieldToHeader, valueByHeader, LEVEL)),
+                cleanValue(resolve(fieldToHeader, valueByHeader, VIDEO_URL)),
+                cleanValue(resolve(fieldToHeader, valueByHeader, PARTICIPANT_NAME)),
+                cleanCpf(resolve(fieldToHeader, valueByHeader, PARTICIPANT_CPF)),
+                cleanValue(resolve(fieldToHeader, valueByHeader, PARTICIPANT_EMAIL)),
+                cleanValue(resolve(fieldToHeader, valueByHeader, INSTITUTION_NAME))
         );
     }
 
-    // Lista os campos do DTO para os quais nenhuma coluna foi encontrada no arquivo
-    static List<String> missingFields(Map<String, String> campoParaCabecalho) {
-        List<String> faltando = new ArrayList<>();
-        campoParaCabecalho.forEach((campo, cabecalho) -> {
-            if (cabecalho == null) {
-                faltando.add(campo);
+    // Lists the DTO fields for which no column was found in the file
+    static List<String> missingFields(Map<String, String> fieldToHeader) {
+        List<String> missing = new ArrayList<>();
+        fieldToHeader.forEach((field, header) -> {
+            if (header == null) {
+                missing.add(field);
             }
         });
-        return faltando;
+        return missing;
     }
 
-    private static String matchExato(List<String> apelidos, Map<String, String> normalizadoParaOriginal) {
-        for (String apelido : apelidos) {
-            String original = normalizadoParaOriginal.get(normalize(apelido));
+    private static String exactMatch(List<String> aliases, Map<String, String> normalizedToOriginal) {
+        for (String alias : aliases) {
+            String original = normalizedToOriginal.get(normalize(alias));
             if (original != null) {
                 return original;
             }
@@ -180,12 +185,12 @@ final class ProjectRowMapper {
         return null;
     }
 
-    private static String matchPorSubstring(List<String> tokens, Map<String, String> normalizadoParaOriginal) {
+    private static String substringMatch(List<String> tokens, Map<String, String> normalizedToOriginal) {
         if (tokens == null) {
             return null;
         }
         for (String token : tokens) {
-            for (Map.Entry<String, String> entry : normalizadoParaOriginal.entrySet()) {
+            for (Map.Entry<String, String> entry : normalizedToOriginal.entrySet()) {
                 if (entry.getKey().contains(token)) {
                     return entry.getValue();
                 }
@@ -194,26 +199,26 @@ final class ProjectRowMapper {
         return null;
     }
 
-    private static String resolver(Map<String, String> campoParaCabecalho, Function<String, String> valorPorCabecalho, String campo) {
-        String cabecalho = campoParaCabecalho.get(campo);
-        return cabecalho == null ? null : valorPorCabecalho.apply(cabecalho);
+    private static String resolve(Map<String, String> fieldToHeader, Function<String, String> valueByHeader, String field) {
+        String header = fieldToHeader.get(field);
+        return header == null ? null : valueByHeader.apply(header);
     }
 
-    private static String limpar(String valor) {
-        if (valor == null) {
+    private static String cleanValue(String value) {
+        if (value == null) {
             return null;
         }
-        String semEspacos = valor.trim();
-        return semEspacos.isEmpty() ? null : semEspacos;
+        String withoutSpaces = value.trim();
+        return withoutSpaces.isEmpty() ? null : withoutSpaces;
     }
 
-    // Remove tudo que não for dígito (pontos, traços, espaços) de um CPF.
-    private static String limparCpf(String valor) {
-        String limpo = limpar(valor);
-        if (limpo == null) {
+    // Removes everything that is not a digit (dots, dashes, spaces) from a CPF.
+    private static String cleanCpf(String value) {
+        String cleaned = cleanValue(value);
+        if (cleaned == null) {
             return null;
         }
-        String apenasDigitos = limpo.replaceAll("\\D", "");
-        return apenasDigitos.isEmpty() ? null : apenasDigitos;
+        String onlyDigits = cleaned.replaceAll("\\D", "");
+        return onlyDigits.isEmpty() ? null : onlyDigits;
     }
 }
