@@ -21,5 +21,10 @@ spring:
       hibernate:
         format_sql: true
 
+video:
+  analyzer:
+    min-duration-seconds: 180
+    max-duration-seconds: 300
+
 server:
   port: ${PORT:8080}
