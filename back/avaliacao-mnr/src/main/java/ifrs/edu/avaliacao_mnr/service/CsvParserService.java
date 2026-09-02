@@ -21,126 +21,127 @@ import java.util.Map;
 @Service
 public class CsvParserService {
     /*
-    T: O que essa classe faz?
-    Processa um arquivo CSV enviado via upload e converte suas linhas em DTOs.
-    Detecta automaticamente o delimitador, barra o envio acidental de arquivos binários (como .xlsx) e converte as linhas válidas em objetos ProjectImportDTO.
-  */
+      # What this class does?
+      Processes an uploaded CSV file and converts its rows into DTOs.
+      Automatically detects the delimiter, prevents accidental upload of binary files (like .xlsx), 
+      and converts valid rows into ProjectImportDTO objects.
+    */
     private static final Logger log = LoggerFactory.getLogger(CsvParserService.class);
 
-    // T: Assinatura de arquivos ZIP — .xlsx, .docx e .pptx são todos ZIPs por baixo.
+    // ZIP file signature — .xlsx, .docx, and .pptx are all ZIPs under the hood.
     private static final byte[] ZIP_SIGNATURE = {0x50, 0x4B}; // "PK"
 
     public List<ProjectImportDTO> parseCsv(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("O arquivo enviado está vazio.");
+            throw new IllegalArgumentException("The uploaded file is empty.");
         }
 
-        String conteudo = lerComoTexto(file);
-        char delimitador = detectarDelimitador(conteudo);
+        String content = readAsText(file);
+        char delimiter = detectDelimiter(content);
 
         CSVFormat format = CSVFormat.DEFAULT.builder()
-                .setDelimiter(delimitador)
-                .setHeader() // detecta o cabeçalho na 1ª linha
-                .setSkipHeaderRecord(true) // não trata o cabeçalho como dado
-                .setIgnoreHeaderCase(true) // "Name", "NAME" e "name" são equivalentes
-                .setIgnoreEmptyLines(true) // pula linhas totalmente em branco
-                .setDuplicateHeaderMode(DuplicateHeaderMode.ALLOW_ALL) // um cabeçalho repetido não derruba tudo
-                .setTrim(true) // remove espaços extras no início/fim de cada valor
+                .setDelimiter(delimiter)
+                .setHeader() // detects the header on the 1st row
+                .setSkipHeaderRecord(true) // does not treat the header as data
+                .setIgnoreHeaderCase(true) // "Name", "NAME", and "name" are equivalent
+                .setIgnoreEmptyLines(true) // skips entirely blank lines
+                .setDuplicateHeaderMode(DuplicateHeaderMode.ALLOW_ALL) // a repeated header won't crash the process (.setAllowDuplicateHeaderNames(true)i is deprecated)
+                .setTrim(true) // removes leading/trailing spaces from each value
                 .build();
 
-        List<ProjectImportDTO> projetos = new ArrayList<>();
-        int totalLinhas = 0;
-        int ignoradas = 0;
+        List<ProjectImportDTO> projects = new ArrayList<>();
+        int totalLines = 0;
+        int ignored = 0;
 
-        try (CSVParser csvParser = new CSVParser(new StringReader(conteudo), format)) {
+        try (CSVParser csvParser = new CSVParser(new StringReader(content), format)) {
 
-            Map<String, String> campoParaCabecalho = ProjectRowMapper.resolveHeaderMap(csvParser.getHeaderNames());
-            avisarColunasNaoEncontradas(campoParaCabecalho);
+            Map<String, String> fieldToHeader = ProjectRowMapper.resolveHeaderMap(csvParser.getHeaderNames());
+            warnMissingColumns(fieldToHeader);
 
             for (CSVRecord record : csvParser) {
-                totalLinhas++;
+                totalLines++;
 
                 ProjectImportDTO dto = ProjectRowMapper.buildDto(
-                        campoParaCabecalho,
-                        cabecalho -> record.isMapped(cabecalho) ? record.get(cabecalho) : null
+                        fieldToHeader,
+                        header -> record.isMapped(header) ? record.get(header) : null
                 );
 
                 if (dto == null) {
-                    ignoradas++;
-                    log.debug("Linha {} ignorada: sem título de projeto preenchido.", record.getRecordNumber());
+                    ignored++;
+                    log.debug("Row {} ignored: project title is missing.", record.getRecordNumber());
                     continue;
                 }
-                projetos.add(dto);
+                projects.add(dto);
             }
         } catch (IOException e) {
-            throw new UncheckedIOException("Falha ao ler o arquivo CSV: " + e.getMessage(), e);
+            throw new UncheckedIOException("Failed to read the CSV file: " + e.getMessage(), e);
         } catch (RuntimeException e) {
-            throw new RuntimeException("Falha ao processar o arquivo CSV: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to process the CSV file: " + e.getMessage(), e);
         }
 
-        log.info("Importação CSV concluída: {} linha(s) lida(s), {} projeto(s) importado(s), {} ignorada(s).", totalLinhas, projetos.size(), ignoradas);
+        log.info("CSV import completed: {} line(s) read, {} project(s) imported, {} ignored.", totalLines, projects.size(), ignored);
 
-        return projetos;
+        return projects;
     }
 
-    /* T:
-    - Lê o arquivo inteiro como texto UTF-8, rejeita arquivos binários -> rejeitarSeForBinario(bytes)
-    - remove o BOM (byte order mark): exportações feitas pelo Excel no Windows costumam inserir no início do arquivo, se não for removido, corrompe o nome da primeira coluna do cabeçalho.
+    /*
+      - Reads the entire file as UTF-8 text, rejects binary files -> rejectIfBinary(bytes)
+      - Removes the BOM (byte order mark): exports made by Excel on Windows often insert this at the beginning of the file. If not removed, it corrupts the name of the first header column.
      */
-    private String lerComoTexto(MultipartFile file) {
+    private String readAsText(MultipartFile file) {
         try {
             byte[] bytes = file.getBytes();
-            rejeitarSeForBinario(bytes);
+            rejectIfBinary(bytes);
 
-            String texto = new String(bytes, StandardCharsets.UTF_8);
-            if (!texto.isEmpty() && texto.charAt(0) == '\uFEFF') {
-                texto = texto.substring(1);
+            String text = new String(bytes, StandardCharsets.UTF_8);
+            if (!text.isEmpty() && text.charAt(0) == '\uFEFF') {
+                text = text.substring(1);
             }
-            return texto;
+            return text;
         } catch (IOException e) {
-            throw new UncheckedIOException("Não foi possível ler o arquivo enviado.", e);
+            throw new UncheckedIOException("Could not read the uploaded file.", e);
         }
     }
 
     /*
-    # T: Barreira defensiva
-    - Verifica a assinatura ZIP de todo arquivo .xlsx/.docx/.pptx (2 primeiors bytes), em vez de confiar só na extensão do arquivo.
+     # Defensive barrier
+      - Checks the ZIP signature of every .xlsx/.docx/.pptx file (first 2 bytes), instead of relying solely on the file extension.
      */
-    private void rejeitarSeForBinario(byte[] bytes) {
+    private void rejectIfBinary(byte[] bytes) {
         if (bytes.length >= ZIP_SIGNATURE.length
                 && bytes[0] == ZIP_SIGNATURE[0]
                 && bytes[1] == ZIP_SIGNATURE[1]) {
             throw new IllegalArgumentException("" +
-                    "O arquivo enviado parece ser um .xlsx, não um CSV de texto. " +
-                    "Use o ExcelParserService para arquivos .xlsx.");
+                    "The uploaded file appears to be an .xlsx, not a text CSV. " +
+                    "Please use the ExcelParserService for .xlsx files.");
         }
     }
 
     /*
-    # T: Escolha entre VIRGULA ou PONTO E VIRGULA
-    - Planilhas exportadas com o Excel configurado em pt-BR costumam salvar CSV separado por ";"
-    ("," é o separador decimal). Aqui analisa só a primeira linha (cabeçalho) e escolhe o separador mais frequente entre "," e ";".
+      # Choice between COMMA or SEMICOLON
+      - Spreadsheets exported with Excel configured in pt-BR usually save CSV separated by ";" 
+      ("," is the decimal separator). This analyzes only the first line (header) and chooses the most frequent separator between "," and ";".
      */
-    private char detectarDelimitador(String conteudo) {
-        int fimPrimeiraLinha = conteudo.indexOf('\n');
-        String primeiraLinha = fimPrimeiraLinha >= 0 ? conteudo.substring(0, fimPrimeiraLinha) : conteudo;
+    private char detectDelimiter(String content) {
+        int endOfFirstLine = content.indexOf('\n');
+        String firstLine = endOfFirstLine >= 0 ? content.substring(0, endOfFirstLine) : content;
 
-        long virgulas = primeiraLinha.chars().filter(c -> c == ',').count();
-        long pontoEVirgulas = primeiraLinha.chars().filter(c -> c == ';').count();
+        long commas = firstLine.chars().filter(c -> c == ',').count();
+        long semicolons = firstLine.chars().filter(c -> c == ';').count();
 
-        return pontoEVirgulas > virgulas ? ';' : ',';
+        return semicolons > commas ? ';' : ',';
     }
 
     /*
-    # T: Alerta configurado
-    - Avisa caso a planinha esteja incompleta.
-    - Ele usa o ProjectRowMapper para verificar quais campos não consegiui achar e guarda na lista "faltando", se a lista não esiver vazia é enviado o aviso.
+      # Configured alert
+      - Warns if the spreadsheet is incomplete.
+      - It uses the ProjectRowMapper to check which fields could not be found and stores them in the "missing" list. If the list is not empty, a warning is sent.
     */
-    private void avisarColunasNaoEncontradas(Map<String, String> campoParaCabecalho) {
-        List<String> faltando = ProjectRowMapper.missingFields(campoParaCabecalho);
-        if (!faltando.isEmpty()) {
-            log.warn("Não foi possível localizar coluna no CSV para os campos {}. " +
-                    "Eles ficarão nulos em todos os projetos importados.", faltando);
+    private void warnMissingColumns(Map<String, String> fieldToHeader) {
+        List<String> missing = ProjectRowMapper.missingFields(fieldToHeader);
+        if (!missing.isEmpty()) {
+            log.warn("Could not locate the CSV column for the fields {}. " +
+                    "They will remain null in all imported projects.", missing);
         }
     }
 }
