@@ -1,4 +1,4 @@
-package ifrs.edu.avaliacao_mnr.project.service;
+package ifrs.edu.avaliacao_mnr.service;
 
 import org.springframework.stereotype.Service;
 
