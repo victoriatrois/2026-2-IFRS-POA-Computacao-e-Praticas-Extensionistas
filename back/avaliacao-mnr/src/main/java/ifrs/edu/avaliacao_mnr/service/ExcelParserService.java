@@ -1,6 +1,6 @@
-package ifrs.edu.avaliacao_mnr.project.service;
+package ifrs.edu.avaliacao_mnr.service;
 
-import ifrs.edu.avaliacao_mnr.project.dto.ProjectImportDTO;
+import ifrs.edu.avaliacao_mnr.dto.ProjectImportDTO;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
 import org.apache.poi.ss.usermodel.Row;
@@ -21,8 +21,9 @@ import java.util.List;
 import java.util.Map;
 
 /*
- T: O que esta classe faz?
- Classe equivalente ao CsvParserService, mas para o formato que o sistema de inscrições realmente exporta (planilhas .xlsx). Reaproveita exatamente as mesmas regras de mapeamento de coluna do parser de CSV, via ProjectRowMapper gerando o mesmo resultado, seja ele enviado como .csv ou como .xlsx.
+ What this class does?
+ Equivalent class to CsvParserService, but for the format that the registration system actually exports (.xlsx spreadsheets).
+ It reuses the exact same column mapping rules from the CSV parser, via ProjectRowMapper, generating the same result whether it's sent as a .csv or as an .xlsx.
  */
 
 @Service
@@ -30,15 +31,15 @@ public class ExcelParserService {
 
     private static final Logger log = LoggerFactory.getLogger(ExcelParserService.class);
 
-     // Processa um arquivo .xlsx/.xls enviado via upload e converte suas linhas em DTOs
+     // Processes an uploaded .xlsx/.xls file and converts its rows into DTOs
     public List<ProjectImportDTO> parseExcel(MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("O arquivo enviado está vazio.");
+            throw new IllegalArgumentException("The uploaded file is empty.");
         }
 
-        List<ProjectImportDTO> projetos = new ArrayList<>();
-        int totalLinhas = 0;
-        int ignoradas = 0;
+        List<ProjectImportDTO> projects = new ArrayList<>();
+        int totalLines = 0;
+        int ignored = 0;
 
         try (InputStream inputStream = file.getInputStream();
              Workbook workbook = WorkbookFactory.create(inputStream)) {
@@ -48,65 +49,65 @@ public class ExcelParserService {
 
             Row headerRow = sheet.getRow(sheet.getFirstRowNum());
             if (headerRow == null) {
-                throw new IllegalArgumentException("A planilha está vazia (sem cabeçalho).");
+                throw new IllegalArgumentException("The spreadsheet is empty (no header).");
             }
 
-            Map<String, Integer> cabecalhoParaColuna = new LinkedHashMap<>();
-            List<String> cabecalhosOriginais = new ArrayList<>();
+            Map<String, Integer> headerToColumn = new LinkedHashMap<>();
+            List<String> originalHeaders = new ArrayList<>();
             for (Cell cell : headerRow) {
-                String nomeCabecalho = formatter.formatCellValue(cell).trim();
-                if (!nomeCabecalho.isEmpty()) {
-                    cabecalhoParaColuna.putIfAbsent(nomeCabecalho, cell.getColumnIndex());
-                    cabecalhosOriginais.add(nomeCabecalho);
+                String headerName = formatter.formatCellValue(cell).trim();
+                if (!headerName.isEmpty()) {
+                    headerToColumn.putIfAbsent(headerName, cell.getColumnIndex());
+                    originalHeaders.add(headerName);
                 }
             }
 
-            Map<String, String> campoParaCabecalho = ProjectRowMapper.resolveHeaderMap(cabecalhosOriginais);
-            avisarColunasNaoEncontradas(campoParaCabecalho);
+            Map<String, String> fieldToHeader = ProjectRowMapper.resolveHeaderMap(originalHeaders);
+            warnMissingColumns(fieldToHeader);
 
-            for (int numeroLinha = headerRow.getRowNum() + 1; numeroLinha <= sheet.getLastRowNum(); numeroLinha++) {
-                Row linhaAtual = sheet.getRow(numeroLinha);
-                if (linhaAtual == null) {
-                    continue; // linha totalmente em branco
+            for (int rowNumber = headerRow.getRowNum() + 1; rowNumber <= sheet.getLastRowNum(); rowNumber++) {
+                Row currentRow = sheet.getRow(rowNumber);
+                if (currentRow == null) {
+                    continue; // entirely blank line
                 }
-                totalLinhas++;
+                totalLines++;
 
                 ProjectImportDTO dto = ProjectRowMapper.buildDto(
-                        campoParaCabecalho,
-                        cabecalho -> {
-                            Integer indiceColuna = cabecalhoParaColuna.get(cabecalho);
-                            if (indiceColuna == null) {
+                        fieldToHeader,
+                        header -> {
+                            Integer columnIndex = headerToColumn.get(header);
+                            if (columnIndex == null) {
                                 return null;
                             }
-                            Cell cell = linhaAtual.getCell(indiceColuna);
+                            Cell cell = currentRow.getCell(columnIndex);
                             return cell == null ? null : formatter.formatCellValue(cell);
                         }
                 );
 
                 if (dto == null) {
-                    ignoradas++;
-                    log.debug("Linha {} ignorada: sem título de projeto preenchido.", numeroLinha + 1);
+                    ignored++;
+                    log.debug("Row {} ignored: project title is missing.", rowNumber + 1);
                     continue;
                 }
-                projetos.add(dto);
+                projects.add(dto);
             }
 
         } catch (IOException e) {
-            throw new UncheckedIOException("Falha ao ler o arquivo Excel: " + e.getMessage(), e);
+            throw new UncheckedIOException("Failed to read the Excel file: " + e.getMessage(), e);
         } catch (RuntimeException e) {
-            throw new RuntimeException("Falha ao processar o arquivo Excel: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to process the Excel file: " + e.getMessage(), e);
         }
 
-        log.info("Importação Excel concluída: {} linha(s) lida(s), {} projeto(s) importado(s), {} ignorada(s).",
-                totalLinhas, projetos.size(), ignoradas);
-        return projetos;
+        log.info("Excel import completed: {} line(s) read, {} project(s) imported, {} ignored.",
+                totalLines, projects.size(), ignored);
+        return projects;
     }
 
-    private void avisarColunasNaoEncontradas(Map<String, String> campoParaCabecalho) {
-        List<String> faltando = ProjectRowMapper.missingFields(campoParaCabecalho);
-        if (!faltando.isEmpty()) {
-            log.warn("Não foi possível localizar coluna na planilha para os campos {}. " +
-                    "Eles ficarão nulos em todos os projetos importados.", faltando);
+    private void warnMissingColumns(Map<String, String> fieldToHeader) {
+        List<String> missing = ProjectRowMapper.missingFields(fieldToHeader);
+        if (!missing.isEmpty()) {
+            log.warn("Could not locate the spreadsheet column for the fields {}. " +
+                    "They will remain null in all imported projects.", missing);
         }
     }
 }
