@@ -1,5 +1,8 @@
 package ifrs.edu.avaliacao_mnr.service;
 
+import ifrs.edu.avaliacao_mnr.project.service.PdfPageValidationService;
+import ifrs.edu.avaliacao_mnr.service.PdfPageValidationService;
+
 import org.springframework.stereotype.Service;
 import ifrs.edu.avaliacao_mnr.dto.ProjectImportDTO;
 import org.apache.commons.csv.CSVFormat;
@@ -144,4 +147,33 @@ public class CsvParserService {
                     "They will remain null in all imported projects.", missing);
         }
     }
+
+@Autowired
+        private PdfPageValidationService pdfPageValidationService; // Variable to store the PDF validation service instance
+
+        @Autowired
+        private VideoAnalyzeService videoAnalyzeService; // Variable to store the video analysis service instance
+
+        // JT: Now that CsvParserService has access to the validator, we need to put it to work. Let's say Taylan's method
+        // JT: just read a spreadsheet row and saved the link in a String pdfUrl variable and the level in a String level variable.
+
+        // JT: CsvParserService needs to call the validator to find out if the project meets the requirements. To do this, it needs to pass
+        // these values to the validator.
+
+        boolean isValid = pdfPageValidationService.validatePdfPages(level, pdfPageValidationService.getPdfPages(pdfUrl));
+
+        if (isValid) {
+            markedForReview = false;
+            validated = true;
+        } else {
+            markedForReview = true;
+            validated = false;
+        }
+
+        // JT: And then instantiate the DTO:
+        ProjectImportDTO projeto = new ProjectImportDTO(
+            projectName, pdfUrl, level, videoUrl, participantName, participantCpf, participantEmail, institutionName, markedForReview, validated
+        );
+
+
 }
