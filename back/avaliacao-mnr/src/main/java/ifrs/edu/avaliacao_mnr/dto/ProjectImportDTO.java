@@ -1,4 +1,4 @@
-package ifrs.edu.avaliacao_mnr.project.dto;
+package ifrs.edu.avaliacao_mnr.dto;
 
 /* T: Optei por RECORD, porque estava relendo algumas anotações
 e vi que é um tipo especial de classe, usada para representar dados imutáveis.
@@ -41,14 +41,14 @@ public record ProjectImportDTO(
         */
 ) {}
 
-/*JT: aqui vamos ter que colocar uma automação para quando tiver menos paginas 
+/*JT: aqui vamos ter que colocar uma automação para quando tiver menos paginas
 que o mínimo no pdf e tempo de video menor que o mínimo, ele não deixa importar,
  ou seja, não deixa salvar no banco.
 Acho que podemos fazer isso no service, mas não sei se é o melhor lugar.
 
-1. Triagem Inicial (Critérios Eliminatórios) Verifique se o trabalho 
-cumpriu as exigências do edital antes de iniciar a avaliação de notas: 
-Resumo/Artigo: Enviado, segue o layout da MNR, dentro do limite de 
-páginas e possui QR Code visível. Vídeo: Enviado, duração entre 3 a 
+1. Triagem Inicial (Critérios Eliminatórios) Verifique se o trabalho
+cumpriu as exigências do edital antes de iniciar a avaliação de notas:
+Resumo/Artigo: Enviado, segue o layout da MNR, dentro do limite de
+páginas e possui QR Code visível. Vídeo: Enviado, duração entre 3 a
 5 min, gravado na horizontal, legendado, com apresentação de estudante
  e layer inicial da MNR.*/
