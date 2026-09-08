@@ -1,4 +1,4 @@
-package ifrs.edu.avaliacao_mnr.project.service;
+package ifrs.edu.avaliacao_mnr.service.Entity;
 
 import org.springframework.stereotype.Service;
 import ifrs.edu.avaliacao_mnr.model.User;
