@@ -65,12 +65,12 @@ If you prefer running and debugging the backend directly from your IDE (IntelliJ
 2. **Run the Backend via the Maven Wrapper:**
    - **Linux / macOS:**
      ```bash
-     cd back/avaliacao-mnr
+     cd backend/avaliacao-mnr
      ./mvnw spring-boot:run
      ```
    - **Windows PowerShell:**
      ```powershell
-     cd back\avaliacao-mnr
+     cd backend\avaliacao-mnr
      .\mvnw.cmd spring-boot:run
      ```
 
@@ -125,7 +125,7 @@ Useful `psql` commands:
 
 ## ⚙️ Environment Variables & Configuration
 
-Database settings are configured in `back/avaliacao-mnr/src/main/resources/application.yaml` and can be overridden using environment variables:
+Database settings are configured in `backend/avaliacao-mnr/src/main/resources/application.yaml` and can be overridden using environment variables:
 
 | Variable | Default (Local) | Description |
 | :--- | :--- | :--- |
@@ -139,7 +139,7 @@ Database settings are configured in `back/avaliacao-mnr/src/main/resources/appli
 ## 📁 Project Structure
 
 ```text
-├── back/
+├── backend/
 │   └── avaliacao-mnr/             # Spring Boot backend application
 │       ├── Dockerfile             # Multi-stage Docker build
 │       ├── pom.xml                # Maven project dependencies
