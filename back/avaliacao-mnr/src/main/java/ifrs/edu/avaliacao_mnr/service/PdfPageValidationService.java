@@ -1,4 +1,4 @@
-package ifrs.edu.avaliacao_mnr.project.service;
+package ifrs.edu.avaliacao_mnr.service;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.springframework.stereotype.Service;
@@ -10,8 +10,6 @@ import java.net.URL;
 @Service
 public class PdfPageValidationService {
 
-    // levels 0, 1, and 2 → 1 to 2 pages
-    // levels 3 and 4 → 3 to 5 pages  
     public boolean validatePdfPages(String level, int pages) {
 
         try {   

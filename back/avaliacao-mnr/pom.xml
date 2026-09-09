@@ -82,14 +82,14 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- Leitor de arquivos CSV -->
+		<!-- CSV file reader -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-csv</artifactId>
 			<version>1.10.0</version>
 		</dependency>
 
-		<!-- Leitor de arquivos Excel (.xlsx) - usado pelo ExcelParserService -->
+		<!-- Excel file reader (.xlsx) – used by ExcelParserService -->
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
@@ -100,6 +100,13 @@
 			<artifactId>poi-ooxml</artifactId>
 			<version>5.5.1</version>
 		</dependency>
+
+		<dependency>
+    		<groupId>org.apache.pdfbox</groupId>
+    		<artifactId>pdfbox</artifactId>
+    		<version>2.0.30</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

@@ -9,6 +9,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,19 +20,16 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-/*
- What this class does?
- Equivalent class to CsvParserService, but for the format that the registration system actually exports (.xlsx spreadsheets).
- It reuses the exact same column mapping rules from the CSV parser, via ProjectRowMapper, generating the same result whether it's sent as a .csv or as an .xlsx.
- */
+import java.util.function.Function;
 
 @Service
 public class ExcelParserService {
 
     private static final Logger log = LoggerFactory.getLogger(ExcelParserService.class);
 
-     // Processes an uploaded .xlsx/.xls file and converts its rows into DTOs
+    @Autowired
+    private PdfPageValidationService pdfPageValidationService;
+
     public List<ProjectImportDTO> parseExcel(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("The uploaded file is empty.");
@@ -68,20 +66,42 @@ public class ExcelParserService {
             for (int rowNumber = headerRow.getRowNum() + 1; rowNumber <= sheet.getLastRowNum(); rowNumber++) {
                 Row currentRow = sheet.getRow(rowNumber);
                 if (currentRow == null) {
-                    continue; // entirely blank line
+                    continue; 
                 }
                 totalLines++;
 
+                // 1. Excel cell extractor function
+                Function<String, String> valueExtractor = header -> {
+                    Integer columnIndex = headerToColumn.get(header);
+                    if (columnIndex == null) return null;
+                    Cell cell = currentRow.getCell(columnIndex);
+                    return cell == null ? null : formatter.formatCellValue(cell);
+                };
+
+                // 2. Extract data for validation
+                String colLevel = fieldToHeader.get("level");
+                String level = colLevel == null ? null : valueExtractor.apply(colLevel);
+
+                String colPdf = fieldToHeader.get("pdfUrl");
+                String pdfUrl = colPdf == null ? null : valueExtractor.apply(colPdf);
+
+                // 3. Validation rule with protection
+                boolean isValid = false;
+                try {
+                    if (level != null && pdfUrl != null && !pdfUrl.isBlank()) {
+                        int pages = pdfPageValidationService.getPdfPages(pdfUrl);
+                        isValid = pdfPageValidationService.validatePdfPages(level, pages);
+                    }
+                } catch (Exception e) {
+                    log.warn("Validation failed for project on row {}: {}", rowNumber + 1, e.getMessage());
+                }
+
+                // 4. Build the DTO
                 ProjectImportDTO dto = ProjectRowMapper.buildDto(
                         fieldToHeader,
-                        header -> {
-                            Integer columnIndex = headerToColumn.get(header);
-                            if (columnIndex == null) {
-                                return null;
-                            }
-                            Cell cell = currentRow.getCell(columnIndex);
-                            return cell == null ? null : formatter.formatCellValue(cell);
-                        }
+                        valueExtractor,
+                        !isValid, // markedForReview
+                        isValid   // validated
                 );
 
                 if (dto == null) {
@@ -98,16 +118,14 @@ public class ExcelParserService {
             throw new RuntimeException("Failed to process the Excel file: " + e.getMessage(), e);
         }
 
-        log.info("Excel import completed: {} line(s) read, {} project(s) imported, {} ignored.",
-                totalLines, projects.size(), ignored);
+        log.info("Excel import completed: {} line(s) read, {} project(s) imported, {} ignored.", totalLines, projects.size(), ignored);
         return projects;
     }
 
     private void warnMissingColumns(Map<String, String> fieldToHeader) {
         List<String> missing = ProjectRowMapper.missingFields(fieldToHeader);
         if (!missing.isEmpty()) {
-            log.warn("Could not locate the spreadsheet column for the fields {}. " +
-                    "They will remain null in all imported projects.", missing);
+            log.warn("Could not locate the spreadsheet column for the fields {}. They will remain null in all imported projects.", missing);
         }
     }
 }
