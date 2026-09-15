@@ -21,16 +21,16 @@ import java.util.Map;
 
 @Service
 public class CsvParserService {
-    
+
     private static final Logger log = LoggerFactory.getLogger(CsvParserService.class);
-    private static final byte[] ZIP_SIGNATURE = {0x50, 0x4B}; 
+    private static final byte[] ZIP_SIGNATURE = {0x50, 0x4B};
 
     @Autowired
     private PdfPageValidationService pdfPageValidationService;
 
     // TODO: Uncomment when Allan creates the VideoAnalyzeService class
     // @Autowired
-    // private VideoAnalyzeService videoAnalyzeService; 
+    // private VideoAnalyzeService videoAnalyzeService;
 
     public List<ProjectImportDTO> parseCsv(MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -42,12 +42,12 @@ public class CsvParserService {
 
         CSVFormat format = CSVFormat.DEFAULT.builder()
                 .setDelimiter(delimiter)
-                .setHeader() 
-                .setSkipHeaderRecord(true) 
-                .setIgnoreHeaderCase(true) 
-                .setIgnoreEmptyLines(true) 
-                .setDuplicateHeaderMode(DuplicateHeaderMode.ALLOW_ALL) 
-                .setTrim(true) 
+                .setHeader()
+                .setSkipHeaderRecord(true)
+                .setIgnoreHeaderCase(true)
+                .setIgnoreEmptyLines(true)
+                .setDuplicateHeaderMode(DuplicateHeaderMode.ALLOW_ALL)
+                .setTrim(true)
                 .build();
 
         List<ProjectImportDTO> projects = new ArrayList<>();
