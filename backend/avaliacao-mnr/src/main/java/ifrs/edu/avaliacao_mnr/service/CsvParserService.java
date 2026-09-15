@@ -1,5 +1,6 @@
 package ifrs.edu.avaliacao_mnr.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ifrs.edu.avaliacao_mnr.dto.ProjectImportDTO;
 import org.apache.commons.csv.CSVFormat;
@@ -20,16 +21,16 @@ import java.util.Map;
 
 @Service
 public class CsvParserService {
-    /*
-      # What this class does?
-      Processes an uploaded CSV file and converts its rows into DTOs.
-      Automatically detects the delimiter, prevents accidental upload of binary files (like .xlsx), 
-      and converts valid rows into ProjectImportDTO objects.
-    */
-    private static final Logger log = LoggerFactory.getLogger(CsvParserService.class);
 
-    // ZIP file signature — .xlsx, .docx, and .pptx are all ZIPs under the hood.
-    private static final byte[] ZIP_SIGNATURE = {0x50, 0x4B}; // "PK"
+    private static final Logger log = LoggerFactory.getLogger(CsvParserService.class);
+    private static final byte[] ZIP_SIGNATURE = {0x50, 0x4B};
+
+    @Autowired
+    private PdfPageValidationService pdfPageValidationService;
+
+    // TODO: Uncomment when Allan creates the VideoAnalyzeService class
+    // @Autowired
+    // private VideoAnalyzeService videoAnalyzeService;
 
     public List<ProjectImportDTO> parseCsv(MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -41,12 +42,12 @@ public class CsvParserService {
 
         CSVFormat format = CSVFormat.DEFAULT.builder()
                 .setDelimiter(delimiter)
-                .setHeader() // detects the header on the 1st row
-                .setSkipHeaderRecord(true) // does not treat the header as data
-                .setIgnoreHeaderCase(true) // "Name", "NAME", and "name" are equivalent
-                .setIgnoreEmptyLines(true) // skips entirely blank lines
-                .setDuplicateHeaderMode(DuplicateHeaderMode.ALLOW_ALL) // a repeated header won't crash the process (.setAllowDuplicateHeaderNames(true)i is deprecated)
-                .setTrim(true) // removes leading/trailing spaces from each value
+                .setHeader()
+                .setSkipHeaderRecord(true)
+                .setIgnoreHeaderCase(true)
+                .setIgnoreEmptyLines(true)
+                .setDuplicateHeaderMode(DuplicateHeaderMode.ALLOW_ALL)
+                .setTrim(true)
                 .build();
 
         List<ProjectImportDTO> projects = new ArrayList<>();
@@ -61,9 +62,30 @@ public class CsvParserService {
             for (CSVRecord record : csvParser) {
                 totalLines++;
 
+                // 1. Extract data for validation
+                String colLevel = fieldToHeader.get("level");
+                String level = (colLevel != null && record.isMapped(colLevel)) ? record.get(colLevel) : null;
+
+                String colPdf = fieldToHeader.get("pdfUrl");
+                String pdfUrl = (colPdf != null && record.isMapped(colPdf)) ? record.get(colPdf) : null;
+
+                // 2. Validation rule with protection against broken links
+                boolean isValid = false;
+                try {
+                    if (level != null && pdfUrl != null && !pdfUrl.isBlank()) {
+                        int pages = pdfPageValidationService.getPdfPages(pdfUrl);
+                        isValid = pdfPageValidationService.validatePdfPages(level, pages);
+                    }
+                } catch (Exception e) {
+                    log.warn("Validation failed for project on line {}: {}", record.getRecordNumber(), e.getMessage());
+                }
+
+                // 3. Build the DTO with the 4 required parameters
                 ProjectImportDTO dto = ProjectRowMapper.buildDto(
                         fieldToHeader,
-                        header -> record.isMapped(header) ? record.get(header) : null
+                        header -> record.isMapped(header) ? record.get(header) : null,
+                        !isValid, // markedForReview
+                        isValid   // validated
                 );
 
                 if (dto == null) {
@@ -80,14 +102,9 @@ public class CsvParserService {
         }
 
         log.info("CSV import completed: {} line(s) read, {} project(s) imported, {} ignored.", totalLines, projects.size(), ignored);
-
         return projects;
     }
 
-    /*
-      - Reads the entire file as UTF-8 text, rejects binary files -> rejectIfBinary(bytes)
-      - Removes the BOM (byte order mark): exports made by Excel on Windows often insert this at the beginning of the file. If not removed, it corrupts the name of the first header column.
-     */
     private String readAsText(MultipartFile file) {
         try {
             byte[] bytes = file.getBytes();
@@ -103,25 +120,12 @@ public class CsvParserService {
         }
     }
 
-    /*
-     # Defensive barrier
-      - Checks the ZIP signature of every .xlsx/.docx/.pptx file (first 2 bytes), instead of relying solely on the file extension.
-     */
     private void rejectIfBinary(byte[] bytes) {
-        if (bytes.length >= ZIP_SIGNATURE.length
-                && bytes[0] == ZIP_SIGNATURE[0]
-                && bytes[1] == ZIP_SIGNATURE[1]) {
-            throw new IllegalArgumentException("" +
-                    "The uploaded file appears to be an .xlsx, not a text CSV. " +
-                    "Please use the ExcelParserService for .xlsx files.");
+        if (bytes.length >= ZIP_SIGNATURE.length && bytes[0] == ZIP_SIGNATURE[0] && bytes[1] == ZIP_SIGNATURE[1]) {
+            throw new IllegalArgumentException("The uploaded file appears to be an .xlsx, not a text CSV. Please use the ExcelParserService for .xlsx files.");
         }
     }
 
-    /*
-      # Choice between COMMA or SEMICOLON
-      - Spreadsheets exported with Excel configured in pt-BR usually save CSV separated by ";" 
-      ("," is the decimal separator). This analyzes only the first line (header) and chooses the most frequent separator between "," and ";".
-     */
     private char detectDelimiter(String content) {
         int endOfFirstLine = content.indexOf('\n');
         String firstLine = endOfFirstLine >= 0 ? content.substring(0, endOfFirstLine) : content;
@@ -132,16 +136,10 @@ public class CsvParserService {
         return semicolons > commas ? ';' : ',';
     }
 
-    /*
-      # Configured alert
-      - Warns if the spreadsheet is incomplete.
-      - It uses the ProjectRowMapper to check which fields could not be found and stores them in the "missing" list. If the list is not empty, a warning is sent.
-    */
     private void warnMissingColumns(Map<String, String> fieldToHeader) {
         List<String> missing = ProjectRowMapper.missingFields(fieldToHeader);
         if (!missing.isEmpty()) {
-            log.warn("Could not locate the CSV column for the fields {}. " +
-                    "They will remain null in all imported projects.", missing);
+            log.warn("Could not locate the CSV column for the fields {}. They will remain null in all imported projects.", missing);
         }
     }
 }

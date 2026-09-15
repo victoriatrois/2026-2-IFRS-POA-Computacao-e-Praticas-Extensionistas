@@ -146,7 +146,7 @@ final class ProjectRowMapper {
        @param valueByHeader -> A lambda function that receives a header name and returns the value contained in the cell of the current row.
       @return -> The populated ProjectImportDTO object with formatted data or NULL.
      */
-    static ProjectImportDTO buildDto(Map<String, String> fieldToHeader, Function<String, String> valueByHeader) {
+    static ProjectImportDTO buildDto(Map<String, String> fieldToHeader, Function<String, String> valueByHeader, boolean markedForReview, boolean validated) {
         String projectName = cleanValue(resolve(fieldToHeader, valueByHeader, PROJECT_NAME));
         if (projectName == null) {
             return null; // missing title -> "dirty" line, should be ignored
@@ -160,7 +160,9 @@ final class ProjectRowMapper {
                 cleanValue(resolve(fieldToHeader, valueByHeader, PARTICIPANT_NAME)),
                 cleanCpf(resolve(fieldToHeader, valueByHeader, PARTICIPANT_CPF)),
                 cleanValue(resolve(fieldToHeader, valueByHeader, PARTICIPANT_EMAIL)),
-                cleanValue(resolve(fieldToHeader, valueByHeader, INSTITUTION_NAME))
+                cleanValue(resolve(fieldToHeader, valueByHeader, INSTITUTION_NAME)),
+                markedForReview,
+                validated
         );
     }
 
