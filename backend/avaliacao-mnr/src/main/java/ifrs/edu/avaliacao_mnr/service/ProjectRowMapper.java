@@ -132,6 +132,21 @@ final class ProjectRowMapper {
         return fieldToHeader;
     }
 
+    static final List<String> EVENT_HEADER_ALIASES = List.of(
+            "event_full_name", "event_name", "evento", "event"
+    );
+
+    /*
+      # Checks if a given header matches event name columns
+     */
+    static boolean isEventHeader(String headerName) {
+        if (headerName == null || headerName.isBlank()) {
+            return false;
+        }
+        String norm = normalize(headerName);
+        return EVENT_HEADER_ALIASES.contains(norm);
+    }
+
     /*
       # Converts data from a single spreadsheet row into a ProjectImportDTO object.
       - The big advantage of this method is that it works for both CSV files and Excel spreadsheets. 
@@ -146,6 +161,10 @@ final class ProjectRowMapper {
        @param valueByHeader -> A lambda function that receives a header name and returns the value contained in the cell of the current row.
       @return -> The populated ProjectImportDTO object with formatted data or NULL.
      */
+    static ProjectImportDTO buildDto(Map<String, String> fieldToHeader, Function<String, String> valueByHeader) {
+        return buildDto(fieldToHeader, valueByHeader, false, false);
+    }
+
     static ProjectImportDTO buildDto(Map<String, String> fieldToHeader, Function<String, String> valueByHeader, boolean markedForReview, boolean validated) {
         String projectName = cleanValue(resolve(fieldToHeader, valueByHeader, PROJECT_NAME));
         if (projectName == null) {

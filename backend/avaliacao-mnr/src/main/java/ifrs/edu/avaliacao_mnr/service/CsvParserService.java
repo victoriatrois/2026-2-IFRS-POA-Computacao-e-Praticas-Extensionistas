@@ -1,7 +1,5 @@
 package ifrs.edu.avaliacao_mnr.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import ifrs.edu.avaliacao_mnr.dto.ProjectImportDTO;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -9,6 +7,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.DuplicateHeaderMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -25,12 +24,11 @@ public class CsvParserService {
     private static final Logger log = LoggerFactory.getLogger(CsvParserService.class);
     private static final byte[] ZIP_SIGNATURE = {0x50, 0x4B};
 
-    @Autowired
-    private PdfPageValidationService pdfPageValidationService;
+    private final ProjectValidationService projectValidationService;
 
-    // TODO: Uncomment when Allan creates the VideoAnalyzeService class
-    // @Autowired
-    // private VideoAnalyzeService videoAnalyzeService;
+    public CsvParserService(ProjectValidationService projectValidationService) {
+        this.projectValidationService = projectValidationService;
+    }
 
     public List<ProjectImportDTO> parseCsv(MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -62,38 +60,21 @@ public class CsvParserService {
             for (CSVRecord record : csvParser) {
                 totalLines++;
 
-                // 1. Extract data for validation
-                String colLevel = fieldToHeader.get("level");
-                String level = (colLevel != null && record.isMapped(colLevel)) ? record.get(colLevel) : null;
-
-                String colPdf = fieldToHeader.get("pdfUrl");
-                String pdfUrl = (colPdf != null && record.isMapped(colPdf)) ? record.get(colPdf) : null;
-
-                // 2. Validation rule with protection against broken links
-                boolean isValid = false;
-                try {
-                    if (level != null && pdfUrl != null && !pdfUrl.isBlank()) {
-                        int pages = pdfPageValidationService.getPdfPages(pdfUrl);
-                        isValid = pdfPageValidationService.validatePdfPages(level, pages);
-                    }
-                } catch (Exception e) {
-                    log.warn("Validation failed for project on line {}: {}", record.getRecordNumber(), e.getMessage());
-                }
-
-                // 3. Build the DTO with the 4 required parameters
-                ProjectImportDTO dto = ProjectRowMapper.buildDto(
+                // 1. Build raw DTO from row
+                ProjectImportDTO rawDto = ProjectRowMapper.buildDto(
                         fieldToHeader,
-                        header -> record.isMapped(header) ? record.get(header) : null,
-                        !isValid, // markedForReview
-                        isValid   // validated
+                        header -> record.isMapped(header) ? record.get(header) : null
                 );
 
-                if (dto == null) {
+                if (rawDto == null) {
                     ignored++;
                     log.debug("Row {} ignored: project title is missing.", record.getRecordNumber());
                     continue;
                 }
-                projects.add(dto);
+
+                // 2. Apply event business validation rules
+                ProjectImportDTO validatedDto = projectValidationService.validateProject(rawDto);
+                projects.add(validatedDto);
             }
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to read the CSV file: " + e.getMessage(), e);
@@ -141,5 +122,51 @@ public class CsvParserService {
         if (!missing.isEmpty()) {
             log.warn("Could not locate the CSV column for the fields {}. They will remain null in all imported projects.", missing);
         }
+    }
+
+    public String extractEventName(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+
+        try {
+            String content = readAsText(file);
+            char delimiter = detectDelimiter(content);
+
+            CSVFormat format = CSVFormat.DEFAULT.builder()
+                    .setDelimiter(delimiter)
+                    .setHeader()
+                    .setSkipHeaderRecord(true)
+                    .setIgnoreHeaderCase(true)
+                    .setIgnoreEmptyLines(true)
+                    .setDuplicateHeaderMode(DuplicateHeaderMode.ALLOW_ALL)
+                    .setTrim(true)
+                    .build();
+
+            try (CSVParser parser = new CSVParser(new StringReader(content), format)) {
+                String eventHeader = null;
+                for (String h : parser.getHeaderNames()) {
+                    if (ProjectRowMapper.isEventHeader(h)) {
+                        eventHeader = h;
+                        break;
+                    }
+                }
+
+                if (eventHeader != null) {
+                    for (CSVRecord record : parser) {
+                        if (record.isMapped(eventHeader)) {
+                            String value = record.get(eventHeader);
+                            if (value != null && !value.isBlank()) {
+                                return value.trim();
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Could not extract event name from CSV: {}", e.getMessage());
+        }
+
+        return null;
     }
 }
