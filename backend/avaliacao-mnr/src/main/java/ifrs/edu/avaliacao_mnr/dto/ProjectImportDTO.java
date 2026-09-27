@@ -11,7 +11,22 @@ public record ProjectImportDTO(
         String institutionName,
         boolean markedForReview,
         boolean validated
-) {}
+) {
+    public ProjectImportDTO withValidation(boolean markedForReview, boolean validated) {
+        return new ProjectImportDTO(
+                projectName,
+                pdfUrl,
+                level,
+                videoUrl,
+                participantName,
+                participantCpf,
+                participantEmail,
+                institutionName,
+                markedForReview,
+                validated
+        );
+    }
+}
 
 // === DATA NOT USED AT THE MOMENT ===
 /*

@@ -9,7 +9,6 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,8 +26,11 @@ public class ExcelParserService {
 
     private static final Logger log = LoggerFactory.getLogger(ExcelParserService.class);
 
-    @Autowired
-    private PdfPageValidationService pdfPageValidationService;
+    private final ProjectValidationService projectValidationService;
+
+    public ExcelParserService(ProjectValidationService projectValidationService) {
+        this.projectValidationService = projectValidationService;
+    }
 
     public List<ProjectImportDTO> parseExcel(MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -66,7 +68,7 @@ public class ExcelParserService {
             for (int rowNumber = headerRow.getRowNum() + 1; rowNumber <= sheet.getLastRowNum(); rowNumber++) {
                 Row currentRow = sheet.getRow(rowNumber);
                 if (currentRow == null) {
-                    continue; 
+                    continue;
                 }
                 totalLines++;
 
@@ -78,38 +80,18 @@ public class ExcelParserService {
                     return cell == null ? null : formatter.formatCellValue(cell);
                 };
 
-                // 2. Extract data for validation
-                String colLevel = fieldToHeader.get("level");
-                String level = colLevel == null ? null : valueExtractor.apply(colLevel);
+                // 2. Build raw DTO from row
+                ProjectImportDTO rawDto = ProjectRowMapper.buildDto(fieldToHeader, valueExtractor);
 
-                String colPdf = fieldToHeader.get("pdfUrl");
-                String pdfUrl = colPdf == null ? null : valueExtractor.apply(colPdf);
-
-                // 3. Validation rule with protection
-                boolean isValid = false;
-                try {
-                    if (level != null && pdfUrl != null && !pdfUrl.isBlank()) {
-                        int pages = pdfPageValidationService.getPdfPages(pdfUrl);
-                        isValid = pdfPageValidationService.validatePdfPages(level, pages);
-                    }
-                } catch (Exception e) {
-                    log.warn("Validation failed for project on row {}: {}", rowNumber + 1, e.getMessage());
-                }
-
-                // 4. Build the DTO
-                ProjectImportDTO dto = ProjectRowMapper.buildDto(
-                        fieldToHeader,
-                        valueExtractor,
-                        !isValid, // markedForReview
-                        isValid   // validated
-                );
-
-                if (dto == null) {
+                if (rawDto == null) {
                     ignored++;
                     log.debug("Row {} ignored: project title is missing.", rowNumber + 1);
                     continue;
                 }
-                projects.add(dto);
+
+                // 3. Apply event business validation rules
+                ProjectImportDTO validatedDto = projectValidationService.validateProject(rawDto);
+                projects.add(validatedDto);
             }
 
         } catch (IOException e) {
@@ -147,8 +129,7 @@ public class ExcelParserService {
             Integer eventColIndex = null;
             for (Cell cell : headerRow) {
                 String headerName = formatter.formatCellValue(cell).trim();
-                String norm = ProjectRowMapper.normalize(headerName);
-                if ("event_full_name".equals(norm) || "event_name".equals(norm) || "evento".equals(norm) || "event".equals(norm)) {
+                if (ProjectRowMapper.isEventHeader(headerName)) {
                     eventColIndex = cell.getColumnIndex();
                     break;
                 }
