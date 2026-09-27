@@ -51,11 +51,56 @@ class PdfPageValidationServiceTest {
         assertFalse(service.validatePdfPages("5", 3));
     }
 
+
+    @Test
+    void mustReturnCorrectNumberOfPdfPages() throws IOException {
+
+        PDDocument document = new PDDocument();
+        document.addPage(new PDPage());
+        document.addPage(new PDPage());
+
+        Path pdfPath = Files.createTempFile("test-", ".pdf");
+        document.save(pdfPath.toFile());
+        document.close();
+
+        int result = service.getPdfPages(pdfPath.toUri().toString());
+
+        assertEquals(2, result);
+
+        Files.deleteIfExists(pdfPath);
+    }
+
+    @Test
+    void mustReturnOneForSinglePagePdf() throws IOException {
+
+        PDDocument document = new PDDocument();
+        document.addPage(new PDPage());
+
+        Path pdfPath = Files.createTempFile("test-", ".pdf");
+        document.save(pdfPath.toFile());
+        document.close();
+
+        int result = service.getPdfPages(pdfPath.toUri().toString());
+
+        assertEquals(1, result);
+
+        Files.deleteIfExists(pdfPath);
+    }
+
     @Test
     void mustThrowExceptionForInvalidLevel() {
         assertThrows(
                 IllegalArgumentException.class,
                 () -> service.validatePdfPages("abc", 2)
         );
+    }
+
+    @Test
+        void mustThrowExceptionForInaccessiblePdf() {
+
+            assertThrows(
+                IllegalArgumentException.class,
+                () -> service.getPdfPages("file:///nonexistent/test.pdf")
+            );
     }
 }
