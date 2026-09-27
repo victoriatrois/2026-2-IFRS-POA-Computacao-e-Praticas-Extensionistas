@@ -26,28 +26,46 @@ public class ProjectImportService {
     private static final Logger log = LoggerFactory.getLogger(ProjectImportService.class);
 
     private final CsvParserService csvParserService;
+    private final ExcelParserService excelParserService;
     private final EventRepository eventRepository;
     private final ProjectRepository projectRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public ProjectImportService(CsvParserService csvParserService,
+                                ExcelParserService excelParserService,
                                 EventRepository eventRepository,
                                 ProjectRepository projectRepository) {
         this.csvParserService = csvParserService;
+        this.excelParserService = excelParserService;
         this.eventRepository = eventRepository;
         this.projectRepository = projectRepository;
     }
 
+    public ProjectImportService(CsvParserService csvParserService,
+                                EventRepository eventRepository,
+                                ProjectRepository projectRepository) {
+        this(csvParserService, null, eventRepository, projectRepository);
+    }
+
     @Transactional
-    public ProjectImportResponseDTO importProjectsFromCsv(MultipartFile file, Long eventId, String eventName) {
+    public ProjectImportResponseDTO importProjects(MultipartFile file, Long eventId, String eventName) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("CSV file must not be empty.");
+            throw new IllegalArgumentException("File must not be empty.");
         }
 
         // 1. Resolve Event
         Event event = resolveEvent(file, eventId, eventName);
 
-        // 2. Parse CSV
-        List<ProjectImportDTO> parsedDtos = csvParserService.parseCsv(file);
+        // 2. Parse file (CSV or Excel)
+        List<ProjectImportDTO> parsedDtos;
+        if (isExcel(file)) {
+            if (excelParserService == null) {
+                throw new IllegalStateException("Excel parser service is not configured.");
+            }
+            parsedDtos = excelParserService.parseExcel(file);
+        } else {
+            parsedDtos = csvParserService.parseCsv(file);
+        }
 
         // 3. Persist / Update Projects (Idempotent)
         int totalProcessed = 0;
@@ -90,7 +108,7 @@ public class ProjectImportService {
             resultProjects.add(ProjectResponseDTO.fromEntity(saved));
         }
 
-        log.info("CSV Import finished for event '{}' (ID: {}). Processed: {}, Created: {}, Updated: {}, Marked for review: {}",
+        log.info("Import finished for event '{}' (ID: {}). Processed: {}, Created: {}, Updated: {}, Marked for review: {}",
                 event.getName(), event.getId(), totalProcessed, totalCreated, totalUpdated, totalMarkedForReview);
 
         return new ProjectImportResponseDTO(
@@ -104,6 +122,32 @@ public class ProjectImportService {
         );
     }
 
+    @Transactional
+    public ProjectImportResponseDTO importProjectsFromCsv(MultipartFile file, Long eventId, String eventName) {
+        return importProjects(file, eventId, eventName);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProjectResponseDTO> getAllProjects(Long eventId) {
+        List<Project> projects;
+        if (eventId != null) {
+            projects = projectRepository.findByEventId(eventId);
+        } else {
+            projects = projectRepository.findAll();
+        }
+        return projects.stream()
+                .map(ProjectResponseDTO::fromEntity)
+                .toList();
+    }
+
+    private boolean isExcel(MultipartFile file) {
+        if (file == null) return false;
+        String filename = file.getOriginalFilename() != null ? file.getOriginalFilename().toLowerCase() : "";
+        String contentType = file.getContentType() != null ? file.getContentType().toLowerCase() : "";
+        return filename.endsWith(".xlsx") || filename.endsWith(".xls")
+                || contentType.contains("spreadsheet") || contentType.contains("excel");
+    }
+
     private Event resolveEvent(MultipartFile file, Long eventId, String eventName) {
         if (eventId != null) {
             return eventRepository.findById(eventId)
@@ -112,7 +156,11 @@ public class ProjectImportService {
 
         String targetName = eventName;
         if (targetName == null || targetName.isBlank()) {
-            targetName = csvParserService.extractEventName(file);
+            if (isExcel(file) && excelParserService != null) {
+                targetName = excelParserService.extractEventName(file);
+            } else if (csvParserService != null) {
+                targetName = csvParserService.extractEventName(file);
+            }
         }
 
         if (targetName == null || targetName.isBlank()) {
@@ -124,7 +172,7 @@ public class ProjectImportService {
                 .orElseGet(() -> {
                     Event newEvent = new Event();
                     newEvent.setName(finalName);
-                    newEvent.setDescription("Criado automaticamente via importação CSV");
+                    newEvent.setDescription("Criado automaticamente via importação");
                     newEvent.setDate(LocalDate.now());
                     newEvent.setStatus(EventStatus.OPEN);
                     newEvent.setCreatedAt(LocalDateTime.now());

@@ -89,5 +89,11 @@ class ProjectControllerIntegrationTest {
                 .andExpect(jsonPath("$.totalUpdated", is((int) projectCount)));
 
         assertEquals(projectCount, projectRepository.count());
+
+        // Test GET /api/projects
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/projects"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize((int) projectCount)))
+                .andExpect(jsonPath("$[0].name", notNullValue()));
     }
 }

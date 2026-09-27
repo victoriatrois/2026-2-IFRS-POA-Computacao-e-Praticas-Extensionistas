@@ -1,14 +1,18 @@
 package ifrs.edu.avaliacao_mnr.controller;
 
 import ifrs.edu.avaliacao_mnr.dto.ProjectImportResponseDTO;
+import ifrs.edu.avaliacao_mnr.dto.ProjectResponseDTO;
 import ifrs.edu.avaliacao_mnr.service.ProjectImportService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -26,7 +30,15 @@ public class ProjectController {
             @RequestParam(value = "eventId", required = false) Long eventId,
             @RequestParam(value = "eventName", required = false) String eventName
     ) {
-        ProjectImportResponseDTO response = projectImportService.importProjectsFromCsv(file, eventId, eventName);
+        ProjectImportResponseDTO response = projectImportService.importProjects(file, eventId, eventName);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ProjectResponseDTO>> getAllProjects(
+            @RequestParam(value = "eventId", required = false) Long eventId
+    ) {
+        List<ProjectResponseDTO> projects = projectImportService.getAllProjects(eventId);
+        return ResponseEntity.ok(projects);
     }
 }

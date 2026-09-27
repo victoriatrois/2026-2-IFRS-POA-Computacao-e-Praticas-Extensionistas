@@ -128,4 +128,50 @@ public class ExcelParserService {
             log.warn("Could not locate the spreadsheet column for the fields {}. They will remain null in all imported projects.", missing);
         }
     }
+
+    public String extractEventName(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+
+        try (InputStream inputStream = file.getInputStream();
+             Workbook workbook = WorkbookFactory.create(inputStream)) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+            DataFormatter formatter = new DataFormatter();
+            Row headerRow = sheet.getRow(sheet.getFirstRowNum());
+            if (headerRow == null) {
+                return null;
+            }
+
+            Integer eventColIndex = null;
+            for (Cell cell : headerRow) {
+                String headerName = formatter.formatCellValue(cell).trim();
+                String norm = ProjectRowMapper.normalize(headerName);
+                if ("event_full_name".equals(norm) || "event_name".equals(norm) || "evento".equals(norm) || "event".equals(norm)) {
+                    eventColIndex = cell.getColumnIndex();
+                    break;
+                }
+            }
+
+            if (eventColIndex != null) {
+                for (int rowNumber = headerRow.getRowNum() + 1; rowNumber <= sheet.getLastRowNum(); rowNumber++) {
+                    Row row = sheet.getRow(rowNumber);
+                    if (row != null) {
+                        Cell cell = row.getCell(eventColIndex);
+                        if (cell != null) {
+                            String value = formatter.formatCellValue(cell).trim();
+                            if (!value.isBlank()) {
+                                return value;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Could not extract event name from Excel file: {}", e.getMessage());
+        }
+
+        return null;
+    }
 }
