@@ -28,9 +28,16 @@ public class CsvParserService {
     @Autowired
     private PdfPageValidationService pdfPageValidationService;
 
-    // TODO: Uncomment when Allan creates the VideoAnalyzeService class
-    // @Autowired
-    // private VideoAnalyzeService videoAnalyzeService;
+    @Autowired
+    private VideoAnalyzerService videoAnalyzerService;
+
+    public CsvParserService() {
+    }
+
+    public CsvParserService(PdfPageValidationService pdfPageValidationService, VideoAnalyzerService videoAnalyzerService) {
+        this.pdfPageValidationService = pdfPageValidationService;
+        this.videoAnalyzerService = videoAnalyzerService;
+    }
 
     public List<ProjectImportDTO> parseCsv(MultipartFile file) {
         if (file == null || file.isEmpty()) {
@@ -69,16 +76,30 @@ public class CsvParserService {
                 String colPdf = fieldToHeader.get("pdfUrl");
                 String pdfUrl = (colPdf != null && record.isMapped(colPdf)) ? record.get(colPdf) : null;
 
-                // 2. Validation rule with protection against broken links
-                boolean isValid = false;
+                String colVideo = fieldToHeader.get("videoUrl");
+                String videoUrl = (colVideo != null && record.isMapped(colVideo)) ? record.get(colVideo) : null;
+
+                // 2. Validation rule with protection against broken links and network errors
+                boolean isPdfValid = false;
                 try {
                     if (level != null && pdfUrl != null && !pdfUrl.isBlank()) {
                         int pages = pdfPageValidationService.getPdfPages(pdfUrl);
-                        isValid = pdfPageValidationService.validatePdfPages(level, pages);
+                        isPdfValid = pdfPageValidationService.validatePdfPages(level, pages);
                     }
                 } catch (Exception e) {
-                    log.warn("Validation failed for project on line {}: {}", record.getRecordNumber(), e.getMessage());
+                    log.warn("PDF validation failed for project on line {}: {}", record.getRecordNumber(), e.getMessage());
                 }
+
+                boolean isVideoValid = false;
+                try {
+                    if (videoUrl != null && !videoUrl.isBlank()) {
+                        isVideoValid = videoAnalyzerService.hasValidDuration(videoUrl);
+                    }
+                } catch (Exception e) {
+                    log.warn("Video validation failed for project on line {}: {}", record.getRecordNumber(), e.getMessage());
+                }
+
+                boolean isValid = isPdfValid && isVideoValid;
 
                 // 3. Build the DTO with the 4 required parameters
                 ProjectImportDTO dto = ProjectRowMapper.buildDto(
@@ -141,5 +162,52 @@ public class CsvParserService {
         if (!missing.isEmpty()) {
             log.warn("Could not locate the CSV column for the fields {}. They will remain null in all imported projects.", missing);
         }
+    }
+
+    public String extractEventName(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            return null;
+        }
+
+        try {
+            String content = readAsText(file);
+            char delimiter = detectDelimiter(content);
+
+            CSVFormat format = CSVFormat.DEFAULT.builder()
+                    .setDelimiter(delimiter)
+                    .setHeader()
+                    .setSkipHeaderRecord(true)
+                    .setIgnoreHeaderCase(true)
+                    .setIgnoreEmptyLines(true)
+                    .setDuplicateHeaderMode(DuplicateHeaderMode.ALLOW_ALL)
+                    .setTrim(true)
+                    .build();
+
+            try (CSVParser parser = new CSVParser(new StringReader(content), format)) {
+                String eventHeader = null;
+                for (String h : parser.getHeaderNames()) {
+                    String norm = ProjectRowMapper.normalize(h);
+                    if ("event_full_name".equals(norm) || "event_name".equals(norm) || "evento".equals(norm) || "event".equals(norm)) {
+                        eventHeader = h;
+                        break;
+                    }
+                }
+
+                if (eventHeader != null) {
+                    for (CSVRecord record : parser) {
+                        if (record.isMapped(eventHeader)) {
+                            String value = record.get(eventHeader);
+                            if (value != null && !value.isBlank()) {
+                                return value.trim();
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Could not extract event name from CSV: {}", e.getMessage());
+        }
+
+        return null;
     }
 }

@@ -13,7 +13,8 @@ public class PdfPageValidationService {
     public boolean validatePdfPages(String level, int pages) {
 
         try {
-            int levelInt = Integer.parseInt(level);
+            String cleanedLevel = level != null ? level.trim().replaceAll("(?i)^[nN]\\s*", "") : "";
+            int levelInt = Integer.parseInt(cleanedLevel);
 
             if (levelInt == 0 || levelInt == 1 || levelInt == 2) {
                 return pages >= 1 && pages <= 2;
@@ -23,7 +24,7 @@ public class PdfPageValidationService {
                 return false;
             }
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid level: " + level);
+            throw new IllegalArgumentException("Invalid level: " + level, e);
         }
     }
 
