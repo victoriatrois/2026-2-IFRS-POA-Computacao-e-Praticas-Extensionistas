@@ -1,4 +1,4 @@
-package ifrs.edu.avaliacao_mnr.user.entity;
+package ifrs.edu.avaliacao_mnr.enums;
 
 public enum Role {
     ADMIN,

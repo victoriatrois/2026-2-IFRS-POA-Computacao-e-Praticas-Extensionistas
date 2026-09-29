@@ -1,6 +1,6 @@
 package ifrs.edu.avaliacao_mnr.evaluation.entity;
 
-import ifrs.edu.avaliacao_mnr.user.entity.User;
+import ifrs.edu.avaliacao_mnr.model.User;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
