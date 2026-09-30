@@ -133,6 +133,30 @@ Database settings are configured in `backend/avaliacao-mnr/src/main/resources/ap
 | `SPRING_DATASOURCE_USERNAME` | `postgres` | Database username |
 | `SPRING_DATASOURCE_PASSWORD` | `postgres` | Database password |
 | `PORT` | `8080` | HTTP server port |
+| `JWT_SECRET` | Local development fallback | HMAC signing secret; use a unique random value of at least 32 bytes outside local development |
+| `JWT_ACCESS_TTL` | `PT15M` | Access token lifetime as an ISO-8601 duration |
+| `JWT_REFRESH_TTL` | `P30D` | Refresh token lifetime as an ISO-8601 duration |
+| `BOOTSTRAP_ADMIN_ENABLED` | `false` | Enables creation of the initial administrator when no user with that email exists |
+| `BOOTSTRAP_ADMIN_NAME` | — | Initial administrator's first name |
+| `BOOTSTRAP_ADMIN_SURNAME` | — | Initial administrator's surname |
+| `BOOTSTRAP_ADMIN_EMAIL` | — | Initial administrator's email |
+| `BOOTSTRAP_ADMIN_CPF` | — | Initial administrator's CPF |
+| `BOOTSTRAP_ADMIN_PASSWORD` | — | Initial administrator's password (minimum 12 characters) |
+
+### Local Authentication Setup
+
+Create the local environment file from the template and generate a JWT secret:
+
+```bash
+cp .env.example .env
+openssl rand -base64 32
+```
+
+Copy the generated value into `JWT_SECRET` in `.env`. Keep `BOOTSTRAP_ADMIN_ENABLED=false` unless you are creating the first administrator. For the initial setup, fill in the `BOOTSTRAP_ADMIN_*` values, set `BOOTSTRAP_ADMIN_ENABLED=true`, start the backend, and then set it back to `false` before restarting.
+
+### Authentication API
+
+See the [Authentication API documentation](documentation/authentication/authentication-api.md) for JWT endpoints, Swagger usage, administrator bootstrap, and audit behavior.
 
 ---
 
