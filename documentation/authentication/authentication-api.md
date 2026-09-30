@@ -27,6 +27,8 @@ docker-compose up -d backend
 
 After the administrator has been created, set `BOOTSTRAP_ADMIN_ENABLED=false` and recreate the backend again. Never commit `.env` or real credentials.
 
+For local frontend development before authentication is integrated, set `SPRING_PROFILES_ACTIVE=dev` in `.env`. The `dev` profile permits requests without JWT authentication, including project import, so the existing import screen can continue working. This bypass is strictly for local development; leave the variable empty or unset in staging and production.
+
 ## Calling Protected APIs
 
 Log in to obtain an access token:

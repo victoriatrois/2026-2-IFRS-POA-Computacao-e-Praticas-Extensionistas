@@ -132,6 +132,7 @@ Database settings are configured in `backend/avaliacao-mnr/src/main/resources/ap
 | `SPRING_DATASOURCE_URL` | `jdbc:postgresql://localhost:5432/avaliacao_mnr_db` | JDBC connection URL |
 | `SPRING_DATASOURCE_USERNAME` | `postgres` | Database username |
 | `SPRING_DATASOURCE_PASSWORD` | `postgres` | Database password |
+| `SPRING_PROFILES_ACTIVE` | — | Set to `dev` only for local development without authentication |
 | `PORT` | `8080` | HTTP server port |
 | `JWT_SECRET` | Local development fallback | HMAC signing secret; use a unique random value of at least 32 bytes outside local development |
 | `JWT_ACCESS_TTL` | `PT15M` | Access token lifetime as an ISO-8601 duration |
@@ -153,6 +154,8 @@ openssl rand -base64 32
 ```
 
 Copy the generated value into `JWT_SECRET` in `.env`. Keep `BOOTSTRAP_ADMIN_ENABLED=false` unless you are creating the first administrator. For the initial setup, fill in the `BOOTSTRAP_ADMIN_*` values, set `BOOTSTRAP_ADMIN_ENABLED=true`, start the backend, and then set it back to `false` before restarting.
+
+For local frontend development before authentication is integrated, set `SPRING_PROFILES_ACTIVE=dev` in the ignored `.env` file. This profile permits requests without JWT authentication so the import screen remains usable. Never enable the `dev` profile in staging or production; when it is absent, the protected security configuration is active.
 
 ### Authentication API
 
