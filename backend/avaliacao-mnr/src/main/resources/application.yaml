@@ -21,6 +21,21 @@ spring:
       hibernate:
         format_sql: true
 
+app:
+  security:
+    jwt:
+      # Local development fallback only. Always override JWT_SECRET outside local development.
+      secret: ${JWT_SECRET:local-development-only-secret-change-before-deployment-2026}
+      access-token-ttl: ${JWT_ACCESS_TTL:PT15M}
+      refresh-token-ttl: ${JWT_REFRESH_TTL:P30D}
+    bootstrap-admin:
+      enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
+      name: ${BOOTSTRAP_ADMIN_NAME:}
+      surname: ${BOOTSTRAP_ADMIN_SURNAME:}
+      email: ${BOOTSTRAP_ADMIN_EMAIL:}
+      cpf: ${BOOTSTRAP_ADMIN_CPF:}
+      password: ${BOOTSTRAP_ADMIN_PASSWORD:}
+
 video:
   analyzer:
     min-duration-seconds: 180
