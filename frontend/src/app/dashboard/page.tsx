@@ -57,6 +57,12 @@ export default function DashboardPage() {
     const review = displayedProjects.filter((project) => project.markedForReview).length;
     const pending = displayedProjects.length - validated;
     const percent = displayedProjects.length ? Math.round((validated / displayedProjects.length) * 100) : 0;
+    // Keep the chart categories exclusive: validated projects take precedence, then review, then pending.
+    const statusCounts = [
+      { label: "Validados", count: validated, color: "#2563eb" },
+      { label: "Marcados para revisão", count: displayedProjects.filter((project) => !project.validated && project.markedForReview).length, color: "#e11d48" },
+      { label: "Pendentes", count: displayedProjects.filter((project) => !project.validated && !project.markedForReview).length, color: "#f59e0b" },
+    ];
     const levels = new Map<string, number>();
     for (const project of displayedProjects) {
       const level = project.level?.trim() || "Não informado";
@@ -67,6 +73,7 @@ export default function DashboardPage() {
       review,
       pending,
       percent,
+      statusCounts,
       levels: [...levels.entries()].sort((a, b) => b[1] - a[1]),
       recent: [...displayedProjects]
         .sort((a, b) => {
@@ -117,7 +124,7 @@ export default function DashboardPage() {
           <Metric title="Marcados para revisão" value={loading && !demoMode ? "…" : stats.review} detail="Sinalizados na importação" accent="rose" />
         </section>
 
-        <section className="grid gap-5 lg:grid-cols-[1.35fr_1fr]">
+        <section className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
           <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -134,6 +141,8 @@ export default function DashboardPage() {
               <span>{loading && !demoMode ? "" : `${stats.pending} pendentes`}</span>
             </div>
           </article>
+
+          <StatusDonut segments={stats.statusCounts} total={displayedProjects.length} loading={loading && !demoMode} />
 
           <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-bold">Projetos por nível</h2>
@@ -172,6 +181,49 @@ export default function DashboardPage() {
         <footer className="text-center text-xs text-slate-500">{demoMode ? "Dados fictícios para visualização do painel." : <>Indicadores calculados a partir dos projetos retornados por <code>/api/projects</code>.</>}</footer>
       </div>
     </main>
+  );
+}
+
+function StatusDonut({ segments, total, loading }: { segments: { label: string; count: number; color: string }[]; total: number; loading: boolean }) {
+  const radius = 72;
+  const circumference = 2 * Math.PI * radius;
+  let offset = 0;
+
+  return (
+    <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 className="text-lg font-bold">Situação da validação</h2>
+      <p className="mt-1 text-sm text-slate-500">Distribuição dos projetos por status</p>
+      {loading ? <p className="mt-6 text-sm text-slate-500">Carregando dados…</p> : total === 0 ? <p className="mt-6 text-sm text-slate-500">Nenhum projeto cadastrado.</p> : (
+        <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <div className="relative h-48 w-48 shrink-0" role="img" aria-label={`Situação da validação: ${segments.map((segment) => `${segment.count} ${segment.label.toLowerCase()}`).join(", ")}`}>
+            <svg viewBox="0 0 200 200" className="h-full w-full -rotate-90" aria-hidden="true">
+              <circle cx="100" cy="100" r={radius} fill="none" stroke="#e2e8f0" strokeWidth="30" />
+              {segments.map((segment) => {
+                const length = total ? (segment.count / total) * circumference : 0;
+                const circle = <circle key={segment.label} cx="100" cy="100" r={radius} fill="none" stroke={segment.color} strokeWidth="30" strokeDasharray={`${length} ${circumference - length}`} strokeDashoffset={-offset} />;
+                offset += length;
+                return circle;
+              })}
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-3xl font-bold">{total}</span>
+              <span className="text-xs text-slate-500">projetos</span>
+            </div>
+          </div>
+          <ul className="w-full space-y-3 sm:w-auto">
+            {segments.map((segment) => (
+              <li key={segment.label} className="flex items-center gap-2 text-sm">
+                <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: segment.color }} />
+                <span className="flex-1 text-slate-700">{segment.label}</span>
+                <span className="font-semibold text-slate-900">{segment.count}</span>
+                <span className="w-12 text-right text-xs text-slate-500">{Math.round((segment.count / total) * 100)}%</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <p className="mt-4 text-xs text-slate-500">Cada projeto aparece em uma única faixa; projetos validados têm prioridade sobre o sinalizador de revisão.</p>
+    </article>
   );
 }
 
