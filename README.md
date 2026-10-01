@@ -62,16 +62,16 @@ If you prefer running and debugging the backend directly from your IDE (IntelliJ
    docker compose up -d postgres
    ```
 
-2. **Run the Backend via the Maven Wrapper:**
+2. **Run the Backend via the Maven Wrapper.** The application refuses to start without `JWT_SECRET` unless the `local` profile is active, so either export `JWT_SECRET` yourself or activate `local` to use its development-only fallback:
    - **Linux / macOS:**
      ```bash
      cd backend/avaliacao-mnr
-     ./mvnw spring-boot:run
+     ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
      ```
    - **Windows PowerShell:**
      ```powershell
      cd backend\avaliacao-mnr
-     .\mvnw.cmd spring-boot:run
+     .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
      ```
 
 ---
@@ -134,7 +134,7 @@ Database settings are configured in `backend/avaliacao-mnr/src/main/resources/ap
 | `SPRING_DATASOURCE_PASSWORD` | `postgres` | Database password |
 | `SPRING_PROFILES_ACTIVE` | — | Set to `dev` only for local development without authentication |
 | `PORT` | `8080` | HTTP server port |
-| `JWT_SECRET` | Local development fallback | HMAC signing secret; use a unique random value of at least 32 bytes outside local development |
+| `JWT_SECRET` | None (required) | HMAC signing secret; required unless the `local` profile is active, which supplies a development-only fallback. Always set a unique random value of at least 32 bytes outside local development |
 | `JWT_ACCESS_TTL` | `PT15M` | Access token lifetime as an ISO-8601 duration |
 | `JWT_REFRESH_TTL` | `P30D` | Refresh token lifetime as an ISO-8601 duration |
 | `BOOTSTRAP_ADMIN_ENABLED` | `false` | Enables creation of the initial administrator when no user with that email exists |
