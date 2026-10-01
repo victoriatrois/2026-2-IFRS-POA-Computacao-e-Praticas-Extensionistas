@@ -5,12 +5,13 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import org.hibernate.validator.constraints.br.CPF;
 
 public record CreateUserRequest(
         @NotBlank @Size(max = 100) String name,
         @NotBlank @Size(max = 100) String surname,
         @NotBlank @Email @Size(max = 255) String email,
-        @NotBlank @Size(max = 14) String cpf,
+        @NotBlank @CPF @Size(max = 14) String cpf,
         @NotBlank @Size(min = 12, max = 128) String password,
         @NotNull Role role
 ) {

@@ -121,6 +121,28 @@ class AuthFlowIntegrationTest {
                 .anyMatch(event -> event.getEventType().equals("LOGIN") && !event.isSuccessful()));
     }
 
+        @Test
+        void adminUserCreationValidatesCpfCheckDigits() throws Exception {
+                String adminToken = loginToken("admin@example.com", PASSWORD, "accessToken");
+
+                mockMvc.perform(post("/users")
+                                                .header("Authorization", "Bearer " + adminToken)
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content("""
+                                                                {"name":"Invalid","surname":"Cpf","email":"invalid-cpf@example.com","cpf":"123.456.789-00","password":"long-password-2026","role":"EVALUATOR"}
+                                                                """))
+                                .andExpect(status().isBadRequest());
+
+                mockMvc.perform(post("/users")
+                                                .header("Authorization", "Bearer " + adminToken)
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content("""
+                                                                {"name":"Valid","surname":"Cpf","email":"valid-cpf@example.com","cpf":"529.982.247-25","password":"long-password-2026","role":"EVALUATOR"}
+                                                                """))
+                                .andExpect(status().isCreated())
+                                .andExpect(jsonPath("$.cpf").value("529.982.247-25"));
+        }
+
         private String loginToken(String email, String password, String property) throws Exception {
         MvcResult result = mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
