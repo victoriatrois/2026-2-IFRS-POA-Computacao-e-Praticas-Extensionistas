@@ -1,7 +1,7 @@
-import type { DashboardProject } from "./page";
+import type { ProjectDashboard } from "./page";
 
 // TODO: Remove these fake demo data when the dashboard is ready to use only real backend data.
-export const mockProjects: DashboardProject[] = [
+export const mockProjects: ProjectDashboard[] = [
   {
     id: 9001,
     name: "Robô Seguidor de Linha para Resgate",

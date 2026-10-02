@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { mockProjects } from "./mockData";
 
-export interface DashboardProject {
+export interface ProjectDashboard {
   id: number;
   name: string;
   level?: string | null;
@@ -26,7 +26,7 @@ function formatDate(value?: string | null) {
 }
 
 export default function DashboardPage() {
-  const [projects, setProjects] = useState<DashboardProject[]>([]);
+  const [projects, setProjects] = useState<ProjectDashboard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [demoMode, setDemoMode] = useState(false);
@@ -37,7 +37,7 @@ export default function DashboardPage() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/projects`);
       if (!response.ok) throw new Error(`A API respondeu com status ${response.status}.`);
-      const data: DashboardProject[] = await response.json();
+      const data: ProjectDashboard[] = await response.json();
       setProjects(data);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Não foi possível carregar os projetos.");
