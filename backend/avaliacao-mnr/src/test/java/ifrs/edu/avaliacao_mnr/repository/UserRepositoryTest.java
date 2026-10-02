@@ -48,6 +48,14 @@ class UserRepositoryTest {
     }
 
     @Test
+    void existsByEmailIgnoreCaseMatchesDifferentCase() {
+        userRepository.save(newUser("Bia", "bia@example.com", "00000000001", Role.ADMIN));
+
+        assertTrue(userRepository.existsByEmailIgnoreCase("BIA@Example.com"));
+        assertFalse(userRepository.existsByEmailIgnoreCase("nobody@example.com"));
+    }
+
+    @Test
     void findByRoleReturnsOnlyMatchingUsers() {
         userRepository.save(newUser("Bia", "bia@example.com", "00000000001", Role.ADMIN));
         userRepository.save(newUser("Alice", "alice@example.com", "00000000002", Role.EVALUATOR));

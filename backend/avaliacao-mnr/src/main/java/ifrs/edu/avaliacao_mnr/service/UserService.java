@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -21,7 +22,8 @@ public class UserService {
     }
 
     public User createUser(User user, String rawPassword) {
-        if (userRepository.existsByEmail(user.getEmail())) {
+        user.setEmail(normalizeEmail(user.getEmail()));
+        if (userRepository.existsByEmailIgnoreCase(user.getEmail())) {
             throw new RuntimeException("E-mail already used in the system.");
         }
 
@@ -41,14 +43,19 @@ public class UserService {
     public User updateUser(UUID id, User userUpdated) {
         User userExistent = findById(id);
 
-        if (!userExistent.getEmail().equals(userUpdated.getEmail())
-                && userRepository.existsByEmail(userUpdated.getEmail())) {
+        String newEmail = normalizeEmail(userUpdated.getEmail());
+        if (!userExistent.getEmail().equalsIgnoreCase(newEmail)
+                && userRepository.existsByEmailIgnoreCase(newEmail)) {
             throw new RuntimeException("E-mail already used in the system.");
         }
 
         userExistent.setName(userUpdated.getName());
-        userExistent.setEmail(userUpdated.getEmail());
+        userExistent.setEmail(newEmail);
         return userRepository.save(userExistent);
+    }
+
+    private static String normalizeEmail(String email) {
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 
     public void deleteUser(UUID id) {
