@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -58,10 +59,56 @@ class UserServiceTest {
 
     @Test
     void createUserRejectsDuplicateEmail() {
-        when(userRepository.existsByEmail("maria@example.com")).thenReturn(true);
+        when(userRepository.existsByEmailIgnoreCase("maria@example.com")).thenReturn(true);
 
         assertThrows(RuntimeException.class, () -> userService.createUser(sampleUser(), "passw0rd!"));
         verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void createUserNormalizesEmailBeforeCheckingAndSaving() {
+        User user = sampleUser();
+        user.setEmail("  Maria@Example.COM ");
+
+        User created = userService.createUser(user, "passw0rd!");
+
+        assertEquals("maria@example.com", created.getEmail());
+        verify(userRepository).existsByEmailIgnoreCase("maria@example.com");
+    }
+
+    @Test
+    void createUserRejectsDuplicateEmailWithDifferentCase() {
+        when(userRepository.existsByEmailIgnoreCase("maria@example.com")).thenReturn(true);
+        User user = sampleUser();
+        user.setEmail("MARIA@example.com");
+
+        assertThrows(RuntimeException.class, () -> userService.createUser(user, "passw0rd!"));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void updateUserNormalizesEmailAndRejectsCaseInsensitiveDuplicate() {
+        UUID id = UUID.randomUUID();
+        when(userRepository.findById(id)).thenReturn(Optional.of(sampleUser()));
+        when(userRepository.existsByEmailIgnoreCase("other@example.com")).thenReturn(true);
+        User update = sampleUser();
+        update.setEmail("Other@Example.com");
+
+        assertThrows(RuntimeException.class, () -> userService.updateUser(id, update));
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void updateUserAllowsSameEmailWithDifferentCase() {
+        UUID id = UUID.randomUUID();
+        when(userRepository.findById(id)).thenReturn(Optional.of(sampleUser()));
+        User update = sampleUser();
+        update.setEmail("MARIA@example.com");
+
+        User saved = userService.updateUser(id, update);
+
+        assertEquals("maria@example.com", saved.getEmail());
+        verify(userRepository, never()).existsByEmailIgnoreCase(any());
     }
 
     @Test

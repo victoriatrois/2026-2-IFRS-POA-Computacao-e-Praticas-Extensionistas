@@ -1,1 +1,8 @@
 .vscode/
+.env
+.env.*
+!.env.example
+documentation/.DS_Store
+backend/avaliacao-mnr/.DS_Store
+backend/.DS_Store
+.DS_Store

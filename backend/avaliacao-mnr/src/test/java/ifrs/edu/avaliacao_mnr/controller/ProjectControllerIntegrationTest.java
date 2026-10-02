@@ -13,6 +13,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.io.InputStream;
@@ -52,6 +53,12 @@ class ProjectControllerIntegrationTest {
         eventRepository.deleteAll();
     }
 
+        @Test
+        void shouldRejectProjectReadsWithoutAuthentication() throws Exception {
+                mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/projects"))
+                                .andExpect(status().isUnauthorized());
+        }
+
     @Test
     void shouldImportProjectsFromInscricoesTesteCsvSuccessfully() throws Exception {
         when(pdfPageValidationService.getPdfPages(anyString())).thenReturn(2);
@@ -69,7 +76,9 @@ class ProjectControllerIntegrationTest {
         );
 
         mockMvc.perform(multipart("/api/projects/import")
-                        .file(file))
+                        .file(file)
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin")
+                                .authorities(() -> "PROJECT_IMPORT", () -> "PROJECT_READ")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.eventName", is("Etapa Nacional")))
                 .andExpect(jsonPath("$.totalProcessed", greaterThan(0)))
@@ -83,7 +92,9 @@ class ProjectControllerIntegrationTest {
 
         // Test idempotency: re-running the same import should not duplicate projects
         mockMvc.perform(multipart("/api/projects/import")
-                        .file(file))
+                        .file(file)
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin")
+                                .authorities(() -> "PROJECT_IMPORT", () -> "PROJECT_READ")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalCreated", is(0)))
                 .andExpect(jsonPath("$.totalUpdated", is((int) projectCount)));
@@ -91,7 +102,9 @@ class ProjectControllerIntegrationTest {
         assertEquals(projectCount, projectRepository.count());
 
         // Test GET /api/projects
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/projects"))
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/projects")
+                        .with(SecurityMockMvcRequestPostProcessors.user("admin")
+                                .authorities(() -> "PROJECT_IMPORT", () -> "PROJECT_READ")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize((int) projectCount)))
                 .andExpect(jsonPath("$[0].name", notNullValue()));

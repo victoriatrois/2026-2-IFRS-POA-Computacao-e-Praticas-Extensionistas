@@ -62,16 +62,16 @@ If you prefer running and debugging the backend directly from your IDE (IntelliJ
    docker compose up -d postgres
    ```
 
-2. **Run the Backend via the Maven Wrapper:**
+2. **Run the Backend via the Maven Wrapper.** The application refuses to start without `JWT_SECRET` unless the `local` profile is active, so either export `JWT_SECRET` yourself or activate `local` to use its development-only fallback:
    - **Linux / macOS:**
      ```bash
      cd backend/avaliacao-mnr
-     ./mvnw spring-boot:run
+     ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
      ```
    - **Windows PowerShell:**
      ```powershell
      cd backend\avaliacao-mnr
-     .\mvnw.cmd spring-boot:run
+     .\mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=local"
      ```
 
 ---
@@ -132,7 +132,36 @@ Database settings are configured in `backend/avaliacao-mnr/src/main/resources/ap
 | `SPRING_DATASOURCE_URL` | `jdbc:postgresql://localhost:5432/avaliacao_mnr_db` | JDBC connection URL |
 | `SPRING_DATASOURCE_USERNAME` | `postgres` | Database username |
 | `SPRING_DATASOURCE_PASSWORD` | `postgres` | Database password |
+| `SPRING_PROFILES_ACTIVE` | — | Set to `dev` only for local development without authentication |
 | `PORT` | `8080` | HTTP server port |
+| `JWT_SECRET` | None (required) | HMAC signing secret; required unless the `local` profile is active, which supplies a development-only fallback. Always set a unique random value of at least 32 bytes outside local development |
+| `JWT_ACCESS_TTL` | `PT15M` | Access token lifetime as an ISO-8601 duration |
+| `JWT_REFRESH_TTL` | `P30D` | Refresh token lifetime as an ISO-8601 duration |
+| `JWT_REFRESH_PURGE_RETENTION` | `P7D` | How long expired or revoked refresh tokens are kept before the scheduled purge deletes them (ISO-8601 duration) |
+| `JWT_REFRESH_PURGE_CRON` | `0 30 3 * * *` | Spring cron expression for the refresh token purge job (daily at 03:30) |
+| `BOOTSTRAP_ADMIN_ENABLED` | `false` | Enables creation of the initial administrator when no user with that email exists |
+| `BOOTSTRAP_ADMIN_NAME` | — | Initial administrator's first name |
+| `BOOTSTRAP_ADMIN_SURNAME` | — | Initial administrator's surname |
+| `BOOTSTRAP_ADMIN_EMAIL` | — | Initial administrator's email |
+| `BOOTSTRAP_ADMIN_CPF` | — | Initial administrator's CPF |
+| `BOOTSTRAP_ADMIN_PASSWORD` | — | Initial administrator's password (minimum 12 characters) |
+
+### Local Authentication Setup
+
+Create the local environment file from the template and generate a JWT secret:
+
+```bash
+cp .env.example .env
+openssl rand -base64 32
+```
+
+Copy the generated value into `JWT_SECRET` in `.env`. Keep `BOOTSTRAP_ADMIN_ENABLED=false` unless you are creating the first administrator. For the initial setup, fill in the `BOOTSTRAP_ADMIN_*` values, set `BOOTSTRAP_ADMIN_ENABLED=true`, start the backend, and then set it back to `false` before restarting.
+
+For local frontend development before authentication is integrated, set `SPRING_PROFILES_ACTIVE=dev` in the ignored `.env` file. This profile permits requests without JWT authentication so the import screen remains usable. Never enable the `dev` profile in staging or production; when it is absent, the protected security configuration is active.
+
+### Authentication API
+
+See the [Authentication API documentation](documentation/authentication/authentication-api.md) for JWT endpoints, Swagger usage, administrator bootstrap, and audit behavior.
 
 ---
 
