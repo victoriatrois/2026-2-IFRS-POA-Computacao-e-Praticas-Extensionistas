@@ -109,6 +109,10 @@ class AuthFlowIntegrationTest {
         String evaluatorToken = loginToken("evaluator@example.com", PASSWORD, "accessToken");
         mockMvc.perform(get("/users").header("Authorization", "Bearer " + evaluatorToken))
                 .andExpect(status().isForbidden());
+        User evaluator = userRepository.findAll().stream()
+                .filter(user -> user.getEmail().equals("evaluator@example.com"))
+                .findFirst()
+                .orElseThrow();
 
         String adminToken = loginToken("admin@example.com", PASSWORD, "accessToken");
         mockMvc.perform(get("/users").header("Authorization", "Bearer " + adminToken))
@@ -116,7 +120,9 @@ class AuthFlowIntegrationTest {
                 .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(2)));
 
         assertTrue(auditEventRepository.findAll().stream()
-                .anyMatch(event -> event.getEventType().equals("ACCESS_DENIED") && !event.isSuccessful()));
+                .anyMatch(event -> event.getEventType().equals("ACCESS_DENIED") && !event.isSuccessful()
+                        && evaluator.getId().equals(event.getUserId())
+                        && event.getEmail().equals("evaluator@example.com")));
         assertTrue(auditEventRepository.findAll().stream()
                 .anyMatch(event -> event.getEventType().equals("LOGIN") && !event.isSuccessful()));
     }

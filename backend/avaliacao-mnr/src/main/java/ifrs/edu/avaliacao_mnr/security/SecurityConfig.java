@@ -1,6 +1,7 @@
 package ifrs.edu.avaliacao_mnr.security;
 
 import ifrs.edu.avaliacao_mnr.authorization.Permission;
+import ifrs.edu.avaliacao_mnr.security.AuthenticatedUser;
 import ifrs.edu.avaliacao_mnr.service.AuthAuditService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
@@ -13,6 +14,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -44,8 +47,15 @@ public class SecurityConfig {
                             writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "unauthorized");
                         })
                         .accessDeniedHandler((request, response, exception) -> {
-                            auditService.record("ACCESS_DENIED", null, null, false,
-                                    request.getMethod() + " " + request.getRequestURI(), request);
+                            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                            if (authentication != null && authentication.isAuthenticated()
+                                    && authentication.getPrincipal() instanceof AuthenticatedUser user) {
+                                auditService.recordActor("ACCESS_DENIED", user.getId(), user.getEmail(), false,
+                                        request.getMethod() + " " + request.getRequestURI(), request);
+                            } else {
+                                auditService.record("ACCESS_DENIED", null, null, false,
+                                        request.getMethod() + " " + request.getRequestURI(), request);
+                            }
                             writeError(response, HttpServletResponse.SC_FORBIDDEN, "forbidden");
                         }))
                 .authorizeHttpRequests(authorize -> authorize

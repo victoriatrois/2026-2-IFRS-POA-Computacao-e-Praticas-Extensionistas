@@ -20,8 +20,14 @@ public class AuthAuditService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void record(String eventType, User user, String email, boolean successful,
                        String details, HttpServletRequest request) {
+        recordActor(eventType, user == null ? null : user.getId(), email, successful, details, request);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void recordActor(String eventType, java.util.UUID userId, String email, boolean successful,
+                            String details, HttpServletRequest request) {
         AuthAuditEvent event = new AuthAuditEvent();
-        event.setUserId(user == null ? null : user.getId());
+        event.setUserId(userId);
         event.setEmail(limit(email, 255));
         event.setEventType(eventType);
         event.setSuccessful(successful);
