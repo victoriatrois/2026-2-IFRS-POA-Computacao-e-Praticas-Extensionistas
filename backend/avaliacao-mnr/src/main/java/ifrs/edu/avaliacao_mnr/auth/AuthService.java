@@ -11,12 +11,10 @@ import ifrs.edu.avaliacao_mnr.security.JwtService;
 import ifrs.edu.avaliacao_mnr.service.AuthAuditService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -59,7 +57,7 @@ public class AuthService {
         User user = userRepository.findByEmailIgnoreCase(normalizedEmail).orElse(null);
         if (user == null || !user.isActive() || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
             auditService.record("LOGIN", user, normalizedEmail, false, "Invalid credentials", httpRequest);
-            throw new BadCredentialsException("Authentication credentials do not match");
+            throw new BadCredentialsException("Invalid email or password");
         }
         auditService.record("LOGIN", user, normalizedEmail, true, "Login succeeded", httpRequest);
         return issueTokens(user, null);
@@ -70,13 +68,13 @@ public class AuthService {
         RefreshToken current = refreshTokenRepository.findByTokenHashForUpdate(hash(rawRefreshToken)).orElse(null);
         if (current == null) {
             auditService.record("REFRESH", null, null, false, "Unknown refresh token", httpRequest);
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+            throw new InvalidRefreshTokenException("Invalid refresh token");
         }
         if (current.getRevokedAt() != null || !current.getExpiresAt().isAfter(OffsetDateTime.now())
                 || !current.getUser().isActive()) {
             auditService.record("REFRESH", current.getUser(), current.getUser().getEmail(), false,
                     "Invalid, expired, revoked, or inactive refresh token", httpRequest);
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+            throw new InvalidRefreshTokenException("Invalid refresh token");
         }
         AuthTokenResponse response = issueTokens(current.getUser(), current);
         auditService.record("REFRESH", current.getUser(), current.getUser().getEmail(), true,
