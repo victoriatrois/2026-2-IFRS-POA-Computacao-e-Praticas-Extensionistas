@@ -137,6 +137,8 @@ Database settings are configured in `backend/avaliacao-mnr/src/main/resources/ap
 | `JWT_SECRET` | None (required) | HMAC signing secret; required unless the `local` profile is active, which supplies a development-only fallback. Always set a unique random value of at least 32 bytes outside local development |
 | `JWT_ACCESS_TTL` | `PT15M` | Access token lifetime as an ISO-8601 duration |
 | `JWT_REFRESH_TTL` | `P30D` | Refresh token lifetime as an ISO-8601 duration |
+| `JWT_REFRESH_PURGE_RETENTION` | `P7D` | How long expired or revoked refresh tokens are kept before the scheduled purge deletes them (ISO-8601 duration) |
+| `JWT_REFRESH_PURGE_CRON` | `0 30 3 * * *` | Spring cron expression for the refresh token purge job (daily at 03:30) |
 | `BOOTSTRAP_ADMIN_ENABLED` | `false` | Enables creation of the initial administrator when no user with that email exists |
 | `BOOTSTRAP_ADMIN_NAME` | — | Initial administrator's first name |
 | `BOOTSTRAP_ADMIN_SURNAME` | — | Initial administrator's surname |
