@@ -7,6 +7,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
@@ -28,10 +30,13 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthAuditService auditService;
+    private final Environment environment;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, AuthAuditService auditService) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, AuthAuditService auditService,
+                          Environment environment) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.auditService = auditService;
+        this.environment = environment;
     }
 
     @Bean
@@ -58,23 +63,29 @@ public class SecurityConfig {
                             }
                             writeError(response, HttpServletResponse.SC_FORBIDDEN, "forbidden");
                         }))
-                .authorizeHttpRequests(authorize -> authorize
-                    .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml", "/webjars/**").permitAll()
-                        .requestMatchers("/auth/login", "/auth/refresh", "/auth/logout", "/api/test").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/projects/import")
-                            .hasAuthority(Permission.PROJECT_IMPORT.name())
-                        .requestMatchers(HttpMethod.GET, "/api/projects/**")
-                            .hasAuthority(Permission.PROJECT_READ.name())
-                        .requestMatchers("/users", "/users/**").hasAuthority(Permission.USER_MANAGE.name())
-                        .requestMatchers(HttpMethod.GET, "/api/events/**")
-                            .hasAuthority(Permission.EVENT_READ.name())
-                        .requestMatchers("/api/events/**").hasAuthority(Permission.EVENT_MANAGE.name())
-                        .requestMatchers("/api/criteria/**").hasAuthority(Permission.CRITERIA_MANAGE.name())
-                        .requestMatchers(HttpMethod.GET, "/api/evaluations/**")
-                            .hasAuthority(Permission.EVALUATION_READ.name())
-                        .requestMatchers("/api/evaluations/**")
-                            .hasAuthority(Permission.EVALUATION_WRITE.name())
-                        .anyRequest().authenticated())
+                .authorizeHttpRequests(authorize -> {
+                    authorize
+                            .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml", "/webjars/**").permitAll()
+                            .requestMatchers("/auth/login", "/auth/refresh", "/auth/logout").permitAll();
+                    if (environment.acceptsProfiles(Profiles.of("local"))) {
+                        authorize.requestMatchers("/api/test").permitAll();
+                    }
+                    authorize
+                            .requestMatchers(HttpMethod.POST, "/api/projects/import")
+                                .hasAuthority(Permission.PROJECT_IMPORT.name())
+                            .requestMatchers(HttpMethod.GET, "/api/projects/**")
+                                .hasAuthority(Permission.PROJECT_READ.name())
+                            .requestMatchers("/users", "/users/**").hasAuthority(Permission.USER_MANAGE.name())
+                            .requestMatchers(HttpMethod.GET, "/api/events/**")
+                                .hasAuthority(Permission.EVENT_READ.name())
+                            .requestMatchers("/api/events/**").hasAuthority(Permission.EVENT_MANAGE.name())
+                            .requestMatchers("/api/criteria/**").hasAuthority(Permission.CRITERIA_MANAGE.name())
+                            .requestMatchers(HttpMethod.GET, "/api/evaluations/**")
+                                .hasAuthority(Permission.EVALUATION_READ.name())
+                            .requestMatchers("/api/evaluations/**")
+                                .hasAuthority(Permission.EVALUATION_WRITE.name())
+                            .anyRequest().authenticated();
+                })
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

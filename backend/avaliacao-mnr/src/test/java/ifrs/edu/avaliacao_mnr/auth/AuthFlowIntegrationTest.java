@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
+@ActiveProfiles({"test", "prod"})
 class AuthFlowIntegrationTest {
 
     private static final String PASSWORD = "integration-password-2026";
@@ -126,6 +126,12 @@ class AuthFlowIntegrationTest {
         assertTrue(auditEventRepository.findAll().stream()
                 .anyMatch(event -> event.getEventType().equals("LOGIN") && !event.isSuccessful()));
     }
+
+        @Test
+        void testEndpointRequiresAuthenticationInProductionProfile() throws Exception {
+                mockMvc.perform(get("/api/test"))
+                                .andExpect(status().isUnauthorized());
+        }
 
         @Test
         void adminUserCreationValidatesCpfCheckDigits() throws Exception {

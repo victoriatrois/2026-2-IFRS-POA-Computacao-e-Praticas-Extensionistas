@@ -12,18 +12,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles({"test", "dev"})
-class DevelopmentSecurityIntegrationTest {
+@ActiveProfiles({"test", "local"})
+class LocalSecurityIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    void developmentProfileAllowsProjectListingWithoutAccessToken() throws Exception {
-        mockMvc.perform(get("/api/projects"))
-                .andExpect(status().isOk());
-
+    void testEndpointIsPublicInLocalProfile() throws Exception {
         mockMvc.perform(get("/api/test"))
-            .andExpect(status().isOk());
+                .andExpect(status().isOk());
     }
 }
