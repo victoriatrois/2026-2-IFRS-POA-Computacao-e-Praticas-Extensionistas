@@ -35,13 +35,13 @@ public class ProjectController {
 
     @PostMapping(value = "/api/projects/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAuthority('PROJECT_IMPORT')")
-    @Operation(summary = "Import projects from CSV", description = "Uploads and validates a project CSV file. Requires the ADMIN project-import permission.")
+    @Operation(summary = "Import projects from CSV", description = "Uploads and validates a project from a CSV file. Requires the ADMIN role.")
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "File processed; import summary returned"),
             @ApiResponse(responseCode = "400", description = "File or import data is invalid"),
             @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
-            @ApiResponse(responseCode = "403", description = "ADMIN project-import permission required")
+            @ApiResponse(responseCode = "403", description = "ADMIN role required")
     })
     public ResponseEntity<ProjectImportResponseDTO> importProjects(
             @Parameter(description = "CSV file containing registrations", required = true) @RequestParam("file") MultipartFile file,
