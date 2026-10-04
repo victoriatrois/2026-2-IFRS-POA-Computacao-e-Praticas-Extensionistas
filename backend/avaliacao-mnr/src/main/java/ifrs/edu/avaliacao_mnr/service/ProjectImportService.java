@@ -20,6 +20,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 @Service
 public class ProjectImportService {
 
@@ -138,6 +143,22 @@ public class ProjectImportService {
         return projects.stream()
                 .map(ProjectResponseDTO::fromEntity)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProjectResponseDTO> getProjectsByEvent(Long eventId, Pageable pageable) {
+        if (!eventRepository.existsById(eventId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found");
+        }
+        return projectRepository.findByEventId(eventId, pageable)
+                .map(ProjectResponseDTO::fromEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public ProjectResponseDTO getProjectById(Long id) {
+        return projectRepository.findById(id)
+                .map(ProjectResponseDTO::fromEntity)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Project not found"));
     }
 
     private boolean isExcel(MultipartFile file) {

@@ -10,6 +10,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import ifrs.edu.avaliacao_mnr.event.entity.Event;
+import ifrs.edu.avaliacao_mnr.event.entity.EventStatus;
+import ifrs.edu.avaliacao_mnr.event.repository.EventRepository;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles({"test", "dev"})
@@ -18,9 +25,19 @@ class DevelopmentSecurityIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private EventRepository eventRepository;
+
     @Test
     void developmentProfileAllowsProjectListingWithoutAccessToken() throws Exception {
-        mockMvc.perform(get("/api/projects"))
+        Event e = new Event();
+        e.setName("dev_event");
+        e.setDate(LocalDate.now());
+        e.setStatus(EventStatus.OPEN);
+        e.setCreatedAt(LocalDateTime.now());
+        e = eventRepository.save(e);
+
+        mockMvc.perform(get("/api/events/" + e.getId() + "/projects"))
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/test"))
