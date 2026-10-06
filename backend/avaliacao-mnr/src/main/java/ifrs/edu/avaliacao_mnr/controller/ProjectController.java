@@ -51,8 +51,6 @@ public class ProjectController {
         return ResponseEntity.ok(response);
     }
 
-    // Replaced `GET /api/projects?eventId=` (removed).
-
     @GetMapping("/api/events/{eventId}/projects")
     @PreAuthorize("hasAuthority('PROJECT_READ')")
     @Operation(summary = "List projects by event", description = "Lists projects of one event, paginated. Available to ADMIN and EVALUATOR users.")
@@ -70,7 +68,6 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
-    // new endpoint
     @GetMapping("/api/projects/{id}")
     @PreAuthorize("hasAuthority('PROJECT_READ')")
     @Operation(summary = "Get project by id", description = "Returns a single project. Available to ADMIN and EVALUATOR users.")
