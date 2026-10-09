@@ -15,3 +15,8 @@ video:
   analyzer:
     min-duration-seconds: 180
     max-duration-seconds: 300
+
+app:
+  security:
+    jwt:
+      secret: "a-very-long-dummy-secret-for-testing-purposes-only-do-not-use-in-prod-12345678901234567890"
