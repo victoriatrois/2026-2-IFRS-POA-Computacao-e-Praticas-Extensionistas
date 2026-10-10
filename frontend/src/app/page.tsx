@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, ChangeEvent, FormEvent } from "react";
+import { useCallback, useEffect, useState, useMemo, ChangeEvent, FormEvent } from "react";
 
 interface Project {
   id: number;
@@ -17,6 +17,22 @@ interface Project {
   validated: boolean;
   createdAt?: string | null;
   updatedAt?: string | null;
+}
+
+interface ProjectEvent {
+  id: number;
+  name: string;
+}
+
+interface PageResponse<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  number: number;
+  size: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
 }
 
 interface ImportSummary {
@@ -40,31 +56,86 @@ export default function Home() {
 
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [events, setEvents] = useState<ProjectEvent[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalProjects, setTotalProjects] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "review" | "validated" | "clean">("all");
 
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async (eventId: number, page = 0) => {
     setIsLoading(true);
     setError(null);
+
     try {
-      const res = await fetch(`${API_BASE_URL}/api/projects`);
-      if (!res.ok) {
-        throw new Error(`Erro ao buscar projetos: status ${res.status}`);
+      const response = await fetch(
+        `${API_BASE_URL}/api/events/${eventId}/projects?page=${page}&size=10`
+      );
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar projetos: HTTP ${response.status}`);
       }
-      const data: Project[] = await res.json();
-      setProjects(data);
+
+      const data: PageResponse<Project> = await response.json();
+
+      setProjects(data.content);
+      setCurrentPage(data.number);
+      setTotalPages(data.totalPages);
+      setTotalProjects(data.totalElements);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro desconhecido ao carregar projetos.";
-      console.error(msg);
-      // Não bloqueia a interface se for apenas o primeiro carregamento com backend ainda iniciando
+      const message =
+        err instanceof Error ? err.message : "Erro desconhecido ao carregar projetos.";
+      setError(message);
+      setProjects([]);
+      setCurrentPage(0);
+      setTotalPages(0);
+      setTotalProjects(0);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  const fetchEvents = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/events`);
+
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar eventos: HTTP ${response.status}`);
+      }
+
+      const data: ProjectEvent[] = await response.json();
+      const firstEventId = data[0]?.id ?? null;
+
+      setEvents(data);
+      setSelectedEventId(firstEventId);
+
+      if (firstEventId !== null) {
+        await fetchProjects(firstEventId, 0);
+      } else {
+        setProjects([]);
+        setCurrentPage(0);
+        setTotalPages(0);
+        setTotalProjects(0);
+      }
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Erro desconhecido ao carregar eventos.";
+      setError(message);
+      setEvents([]);
+      setSelectedEventId(null);
+      setProjects([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchProjects]);
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    void fetchEvents();
+  }, [fetchEvents]);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -121,11 +192,13 @@ export default function Home() {
         totalMarkedForReview: data.totalMarkedForReview,
       });
 
-      if (data.projects && Array.isArray(data.projects)) {
-        setProjects(data.projects);
-      } else {
-        await fetchProjects();
-      }
+      setEvents((currentEvents) =>
+        currentEvents.some((event) => event.id === data.eventId)
+          ? currentEvents
+          : [...currentEvents, { id: data.eventId, name: data.eventName }]
+      );
+      setSelectedEventId(data.eventId);
+      await fetchProjects(data.eventId, 0);
 
       setSuccess(`Importação concluída com sucesso! Processados: ${data.totalProcessed}`);
       setFile(null);
@@ -191,8 +264,12 @@ export default function Home() {
           </div>
 
           <button
-            onClick={fetchProjects}
-            disabled={isLoading}
+            onClick={() => {
+              if (selectedEventId !== null) {
+                void fetchProjects(selectedEventId, 0);
+              }
+            }}
+            disabled={isLoading || selectedEventId === null}
             className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-slate-300 rounded-md text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 transition cursor-pointer"
           >
             {isLoading ? "Atualizando..." : "🔄 Atualizar Lista"}
@@ -313,6 +390,46 @@ export default function Home() {
 
         {/* Global Summary Statistics & Controls */}
         <section className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+            <div className="w-full sm:max-w-md">
+              <label htmlFor="event-select" className="block text-sm font-medium text-slate-700 mb-1">
+                Evento
+              </label>
+              <select
+                id="event-select"
+                value={selectedEventId ?? ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const eventId = value ? Number(value) : null;
+
+                  setSelectedEventId(eventId);
+                  setCurrentPage(0);
+                  setSearchTerm("");
+                  setStatusFilter("all");
+
+                  if (eventId === null) {
+                    setProjects([]);
+                    setTotalPages(0);
+                    setTotalProjects(0);
+                  } else {
+                    void fetchProjects(eventId, 0);
+                  }
+                }}
+                disabled={isLoading || events.length === 0}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 disabled:bg-slate-100"
+              >
+                <option value="">
+                  {events.length === 0 ? "Nenhum evento disponível" : "Selecione um evento"}
+                </option>
+                {events.map((event) => (
+                  <option key={event.id} value={event.id}>
+                    {event.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             {/* Filter buttons */}
             <div className="flex flex-wrap items-center gap-2">
@@ -399,7 +516,13 @@ export default function Home() {
                       <td colSpan={5} className="px-4 py-12 text-center text-slate-400">
                         {isLoading
                           ? "Carregando projetos..."
-                          : "Nenhum projeto encontrado. Importe um arquivo CSV ou Excel acima para visualizar."}
+                          : events.length === 0
+                            ? "Nenhum evento disponível para listar projetos."
+                            : selectedEventId === null
+                              ? "Selecione um evento para visualizar os projetos."
+                              : searchTerm || statusFilter !== "all"
+                                ? "Nenhum projeto corresponde aos filtros nesta página."
+                                : "Nenhum projeto encontrado para este evento. Importe um arquivo CSV ou Excel acima para visualizar."}
                       </td>
                     </tr>
                   ) : (
@@ -503,8 +626,60 @@ export default function Home() {
               </table>
             </div>
 
-            <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex justify-between items-center">
-              <span>Exibindo {filteredProjects.length} de {projects.length} projeto(s)</span>
+            <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500 flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center">
+              <div className="space-y-1">
+                <span className="block">
+                  Exibindo {filteredProjects.length} de {projects.length} projeto(s) nesta página; {totalProjects} no evento.
+                </span>
+                <span className="block">
+                  Filtros e busca consideram apenas os projetos carregados nesta página.
+                </span>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedEventId !== null) void fetchProjects(selectedEventId, 0);
+                  }}
+                  disabled={isLoading || selectedEventId === null || currentPage === 0 || totalPages === 0}
+                  className="px-2.5 py-1 border border-slate-300 rounded bg-white hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Primeira
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedEventId !== null) void fetchProjects(selectedEventId, currentPage - 1);
+                  }}
+                  disabled={isLoading || selectedEventId === null || currentPage === 0 || totalPages === 0}
+                  className="px-2.5 py-1 border border-slate-300 rounded bg-white hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Anterior
+                </button>
+                <span className="px-1">
+                  Página {totalPages === 0 ? 0 : currentPage + 1} de {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedEventId !== null) void fetchProjects(selectedEventId, currentPage + 1);
+                  }}
+                  disabled={isLoading || selectedEventId === null || totalPages === 0 || currentPage >= totalPages - 1}
+                  className="px-2.5 py-1 border border-slate-300 rounded bg-white hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Próxima
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedEventId !== null) void fetchProjects(selectedEventId, totalPages - 1);
+                  }}
+                  disabled={isLoading || selectedEventId === null || totalPages === 0 || currentPage >= totalPages - 1}
+                  className="px-2.5 py-1 border border-slate-300 rounded bg-white hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Última
+                </button>
+              </div>
               <span>Backend API: {API_BASE_URL}</span>
             </div>
           </div>
