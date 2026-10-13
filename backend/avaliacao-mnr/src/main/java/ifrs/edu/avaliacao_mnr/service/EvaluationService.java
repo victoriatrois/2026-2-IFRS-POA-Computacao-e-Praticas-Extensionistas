@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -79,6 +80,7 @@ public class EvaluationService {
 
         // Do not replace the evaluator using data from the request.
         existing.setStatus(evaluationUpdated.getStatus());
+        existing.setUpdatedAt(LocalDateTime.now());
 
         Evaluation saved = evaluationRepository.save(existing);
         return EvaluationResponseDTO.fromEntity(saved);
