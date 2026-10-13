@@ -99,7 +99,7 @@ public class EvaluationController {
             @RequestBody Evaluation evaluation
     ) {
         return ResponseEntity.ok(
-                evaluationService.updateEvaluation(id, evaluation)
+                evaluationService.updateEvaluation(id, evaluation, null)
         );
     }
 
@@ -117,7 +117,7 @@ public class EvaluationController {
             @ApiResponse(responseCode = "404", description = "Evaluation not found")
     })
     public ResponseEntity<Void> deleteEvaluation(@PathVariable Long id) {
-        evaluationService.deleteEvaluation(id);
+        evaluationService.deleteEvaluation(id, null);
         return ResponseEntity.noContent().build();
     }
 }

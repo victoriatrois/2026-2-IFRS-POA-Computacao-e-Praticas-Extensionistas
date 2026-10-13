@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class EvaluationService {
@@ -25,13 +26,15 @@ public class EvaluationService {
         return EvaluationResponseDTO.fromEntity(savedEvaluation);
     }
 
+    
     @Transactional(readOnly = true)
     public List<EvaluationResponseDTO> listAll() {
-        return ((Object) evaluationRepository.findAll()
-                .stream()
-                .map(EvaluationResponseDTO::fromEntity))
-                .toList();
-    }
+    return evaluationRepository.findAll()
+            .stream()
+            .map(EvaluationResponseDTO::fromEntity)
+            .toList();
+}
+
 
     @Transactional(readOnly = true)
     public EvaluationResponseDTO findById(Long id) {
@@ -43,32 +46,41 @@ public class EvaluationService {
         return EvaluationResponseDTO.fromEntity(evaluation);
     }
 
+    
     @Transactional
     public EvaluationResponseDTO updateEvaluation(
             Long id,
-            Evaluation evaluationUpdated
-    ) {
-        Evaluation evaluationExistent = evaluationRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Evaluation not found: " + id
-                ));
+            Evaluation evaluationUpdated,
+            UUID authenticatedUserId) {
 
-        evaluationExistent.setEvaluator(evaluationUpdated.getEvaluator());
-        evaluationExistent.setStatus(evaluationUpdated.getStatus());
+        Evaluation existing = evaluationRepository.findById(id)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Evaluation not found: " + id));
 
-        Evaluation savedEvaluation =
-                evaluationRepository.save(evaluationExistent);
+        if (!existing.getEvaluator().getId().equals(authenticatedUserId)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You cannot update another evaluator's evaluation");
+        }
 
-        return EvaluationResponseDTO.fromEntity(savedEvaluation);
+        // Não substitua o avaliador pelo valor enviado na requisição.
+        existing.setStatus(evaluationUpdated.getStatus());
+
+        Evaluation saved = evaluationRepository.save(existing);
+        return EvaluationResponseDTO.fromEntity(saved);
     }
 
     @Transactional
-    public void deleteEvaluation(Long id) {
+    public void deleteEvaluation(Long id, UUID authenticatedUserId) {
         Evaluation evaluation = evaluationRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Evaluation not found: " + id
-                ));
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Evaluation not found: " + id));
+
+        if (!evaluation.getEvaluator().getId().equals(authenticatedUserId)) {
+            throw new org.springframework.security.access.AccessDeniedException(
+                    "You cannot delete another evaluator's evaluation");
+        }
 
         evaluationRepository.delete(evaluation);
     }
+
 }
