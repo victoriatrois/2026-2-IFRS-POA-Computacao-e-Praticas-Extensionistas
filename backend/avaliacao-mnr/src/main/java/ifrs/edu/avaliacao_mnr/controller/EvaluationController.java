@@ -1,5 +1,7 @@
+
 package ifrs.edu.avaliacao_mnr.controller;
 
+import ifrs.edu.avaliacao_mnr.dto.EvaluationResponseDTO;
 import ifrs.edu.avaliacao_mnr.evaluation.entity.Evaluation;
 import ifrs.edu.avaliacao_mnr.service.EvaluationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,14 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -43,7 +38,7 @@ public class EvaluationController {
             @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
             @ApiResponse(responseCode = "403", description = "Evaluation-read permission required")
     })
-    public ResponseEntity<List<Evaluation>> getAllEvaluations() {
+    public ResponseEntity<List<EvaluationResponseDTO>> getAllEvaluations() {
         return ResponseEntity.ok(evaluationService.listAll());
     }
 
@@ -60,7 +55,9 @@ public class EvaluationController {
             @ApiResponse(responseCode = "403", description = "Evaluation-read permission required"),
             @ApiResponse(responseCode = "404", description = "Evaluation not found")
     })
-    public ResponseEntity<Evaluation> getEvaluationById(@PathVariable Long id) {
+    public ResponseEntity<EvaluationResponseDTO> getEvaluationById(
+            @PathVariable Long id
+    ) {
         return ResponseEntity.ok(evaluationService.findById(id));
     }
 
@@ -76,10 +73,12 @@ public class EvaluationController {
             @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
             @ApiResponse(responseCode = "403", description = "Evaluation-write permission required")
     })
-    public ResponseEntity<Evaluation> createEvaluation(
+    public ResponseEntity<EvaluationResponseDTO> createEvaluation(
             @RequestBody Evaluation evaluation
     ) {
-        return ResponseEntity.ok(evaluationService.createEvaluation(evaluation));
+        return ResponseEntity.ok(
+                evaluationService.createEvaluation(evaluation)
+        );
     }
 
     @PutMapping("/{id}")
@@ -95,7 +94,7 @@ public class EvaluationController {
             @ApiResponse(responseCode = "403", description = "Evaluation-write permission required"),
             @ApiResponse(responseCode = "404", description = "Evaluation not found")
     })
-    public ResponseEntity<Evaluation> updateEvaluation(
+    public ResponseEntity<EvaluationResponseDTO> updateEvaluation(
             @PathVariable Long id,
             @RequestBody Evaluation evaluation
     ) {

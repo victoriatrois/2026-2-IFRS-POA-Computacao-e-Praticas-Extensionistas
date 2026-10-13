@@ -1,5 +1,7 @@
+
 package ifrs.edu.avaliacao_mnr.service;
 
+import ifrs.edu.avaliacao_mnr.dto.EvaluationResponseDTO;
 import ifrs.edu.avaliacao_mnr.evaluation.entity.Evaluation;
 import ifrs.edu.avaliacao_mnr.repository.EvaluationRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -18,36 +20,55 @@ public class EvaluationService {
     }
 
     @Transactional
-    public Evaluation createEvaluation(Evaluation evaluation) {
-        return evaluationRepository.save(evaluation);
+    public EvaluationResponseDTO createEvaluation(Evaluation evaluation) {
+        Evaluation savedEvaluation = evaluationRepository.save(evaluation);
+        return EvaluationResponseDTO.fromEntity(savedEvaluation);
     }
 
     @Transactional(readOnly = true)
-    public List<Evaluation> listAll() {
-        return evaluationRepository.findAll();
+    public List<EvaluationResponseDTO> listAll() {
+        return ((Object) evaluationRepository.findAll()
+                .stream()
+                .map(EvaluationResponseDTO::fromEntity))
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public Evaluation findById(Long id) {
-        return evaluationRepository.findById(id)
+    public EvaluationResponseDTO findById(Long id) {
+        Evaluation evaluation = evaluationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(
                         "Evaluation not found: " + id
                 ));
+
+        return EvaluationResponseDTO.fromEntity(evaluation);
     }
 
     @Transactional
-    public Evaluation updateEvaluation(Long id, Evaluation evaluationUpdated) {
-        Evaluation evaluationExistent = findById(id);
+    public EvaluationResponseDTO updateEvaluation(
+            Long id,
+            Evaluation evaluationUpdated
+    ) {
+        Evaluation evaluationExistent = evaluationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Evaluation not found: " + id
+                ));
 
         evaluationExistent.setEvaluator(evaluationUpdated.getEvaluator());
         evaluationExistent.setStatus(evaluationUpdated.getStatus());
 
-        return evaluationRepository.save(evaluationExistent);
+        Evaluation savedEvaluation =
+                evaluationRepository.save(evaluationExistent);
+
+        return EvaluationResponseDTO.fromEntity(savedEvaluation);
     }
 
     @Transactional
     public void deleteEvaluation(Long id) {
-        Evaluation evaluation = findById(id);
+        Evaluation evaluation = evaluationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Evaluation not found: " + id
+                ));
+
         evaluationRepository.delete(evaluation);
     }
 }
