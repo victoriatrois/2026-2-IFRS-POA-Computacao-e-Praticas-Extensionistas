@@ -28,6 +28,14 @@ public class Event {
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
+    
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
+
 
     public Event() {
     }

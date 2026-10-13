@@ -2,6 +2,8 @@
 package ifrs.edu.avaliacao_mnr.service;
 
 import ifrs.edu.avaliacao_mnr.dto.EvaluationResponseDTO;
+import ifrs.edu.avaliacao_mnr.model.User;
+import ifrs.edu.avaliacao_mnr.repository.UserRepository;
 import ifrs.edu.avaliacao_mnr.evaluation.entity.Evaluation;
 import ifrs.edu.avaliacao_mnr.repository.EvaluationRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,16 +17,32 @@ import java.util.UUID;
 public class EvaluationService {
 
     private final EvaluationRepository evaluationRepository;
+    private final UserRepository userRepository;
 
-    public EvaluationService(EvaluationRepository evaluationRepository) {
-        this.evaluationRepository = evaluationRepository;
-    }
+    public EvaluationService(
+        EvaluationRepository evaluationRepository,
+        UserRepository userRepository) {
+    this.evaluationRepository = evaluationRepository;
+    this.userRepository = userRepository;
+}
 
+    
     @Transactional
-    public EvaluationResponseDTO createEvaluation(Evaluation evaluation) {
-        Evaluation savedEvaluation = evaluationRepository.save(evaluation);
-        return EvaluationResponseDTO.fromEntity(savedEvaluation);
-    }
+    public EvaluationResponseDTO createEvaluation(
+        Evaluation evaluation,
+        UUID authenticatedUserId) {
+
+    User evaluator = userRepository.findById(authenticatedUserId)
+            .orElseThrow(() -> new EntityNotFoundException(
+                    "Authenticated user not found"));
+
+    // Ignora qualquer avaliador enviado no corpo da requisição.
+    evaluation.setEvaluator(evaluator);
+
+    Evaluation savedEvaluation = evaluationRepository.save(evaluation);
+    return EvaluationResponseDTO.fromEntity(savedEvaluation);
+}
+
 
     
     @Transactional(readOnly = true)
@@ -70,7 +88,7 @@ public class EvaluationService {
     }
 
     @Transactional
-    public void deleteEvaluation(Long id, UUID authenticatedUserId) {
+    public void deleteEvaluation(Long id) {
         Evaluation evaluation = evaluationRepository.findById(id)
                 .orElseThrow(() ->
                         new EntityNotFoundException("Evaluation not found: " + id));

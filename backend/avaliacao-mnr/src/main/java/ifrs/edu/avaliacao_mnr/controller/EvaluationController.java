@@ -5,6 +5,8 @@ import ifrs.edu.avaliacao_mnr.dto.EvaluationResponseDTO;
 import ifrs.edu.avaliacao_mnr.evaluation.entity.Evaluation;
 import ifrs.edu.avaliacao_mnr.service.EvaluationService;
 import io.swagger.v3.oas.annotations.Operation;
+import ifrs.edu.avaliacao_mnr.security.AuthenticatedUser;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -73,13 +75,18 @@ public class EvaluationController {
             @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
             @ApiResponse(responseCode = "403", description = "Evaluation-write permission required")
     })
+    
     public ResponseEntity<EvaluationResponseDTO> createEvaluation(
-            @RequestBody Evaluation evaluation
-    ) {
-        return ResponseEntity.ok(
-                evaluationService.createEvaluation(evaluation)
-        );
-    }
+        @RequestBody Evaluation evaluation,
+        @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+
+    return ResponseEntity.ok(
+            evaluationService.createEvaluation(
+                    evaluation,
+                    authenticatedUser.getId()
+            )
+    );
+}
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('EVALUATION_WRITE')")
@@ -117,7 +124,7 @@ public class EvaluationController {
             @ApiResponse(responseCode = "404", description = "Evaluation not found")
     })
     public ResponseEntity<Void> deleteEvaluation(@PathVariable Long id) {
-        evaluationService.deleteEvaluation(id, null);
+        evaluationService.deleteEvaluation(id);
         return ResponseEntity.noContent().build();
     }
 }
