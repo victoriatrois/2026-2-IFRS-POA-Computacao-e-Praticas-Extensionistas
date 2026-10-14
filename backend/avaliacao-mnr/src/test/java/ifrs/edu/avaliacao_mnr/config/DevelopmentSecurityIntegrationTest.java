@@ -19,7 +19,7 @@ import ifrs.edu.avaliacao_mnr.event.repository.EventRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles({"test", "dev"})
+@ActiveProfiles({ "test", "dev" })
 class DevelopmentSecurityIntegrationTest {
 
     @Autowired
@@ -41,6 +41,6 @@ class DevelopmentSecurityIntegrationTest {
                 .andExpect(status().isOk());
 
         mockMvc.perform(get("/api/test"))
-            .andExpect(status().isOk());
+                .andExpect(status().isOk());
     }
 }

@@ -33,7 +33,7 @@ public class SecurityConfig {
     private final Environment environment;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, AuthAuditService auditService,
-                          Environment environment) {
+            Environment environment) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.auditService = auditService;
         this.environment = environment;
@@ -65,25 +65,28 @@ public class SecurityConfig {
                         }))
                 .authorizeHttpRequests(authorize -> {
                     authorize
-                            .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml", "/webjars/**").permitAll()
+                            .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**",
+                                    "/v3/api-docs.yaml", "/webjars/**")
+                            .permitAll()
                             .requestMatchers("/auth/login", "/auth/refresh", "/auth/logout").permitAll();
                     if (environment.acceptsProfiles(Profiles.of("local"))) {
                         authorize.requestMatchers("/api/test").permitAll();
                     }
                     authorize
                             .requestMatchers(HttpMethod.POST, "/api/projects/import")
-                                .hasAuthority(Permission.PROJECT_IMPORT.name())
+                            .hasAuthority(Permission.PROJECT_IMPORT.name())
                             .requestMatchers(HttpMethod.GET, "/api/projects/**")
-                                .hasAuthority(Permission.PROJECT_READ.name())
+                            .hasAuthority(Permission.PROJECT_READ.name())
                             .requestMatchers("/users", "/users/**").hasAuthority(Permission.USER_MANAGE.name())
-                            .requestMatchers(HttpMethod.GET, "/api/events/**")
-                                .hasAuthority(Permission.EVENT_READ.name())
-                            .requestMatchers("/api/events/**").hasAuthority(Permission.EVENT_MANAGE.name())
+                            .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**")
+                            .hasAuthority(Permission.EVENT_READ.name())
+                            .requestMatchers("/api/events", "/api/events/**")
+                            .hasAuthority(Permission.EVENT_MANAGE.name())
                             .requestMatchers("/api/criteria/**").hasAuthority(Permission.CRITERIA_MANAGE.name())
                             .requestMatchers(HttpMethod.GET, "/api/evaluations/**")
-                                .hasAuthority(Permission.EVALUATION_READ.name())
+                            .hasAuthority(Permission.EVALUATION_READ.name())
                             .requestMatchers("/api/evaluations/**")
-                                .hasAuthority(Permission.EVALUATION_WRITE.name())
+                            .hasAuthority(Permission.EVALUATION_WRITE.name())
                             .anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
