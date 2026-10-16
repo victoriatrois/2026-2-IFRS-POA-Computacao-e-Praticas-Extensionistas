@@ -5,6 +5,7 @@ import ifrs.edu.avaliacao_mnr.event.repository.EventRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ifrs.edu.avaliacao_mnr.dto.EventResponseDTO;
 
 import java.util.List;
 
@@ -23,33 +24,37 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
-    public List<Event> listAll() {
-        return eventRepository.findAll();
+    public List<EventResponseDTO> listAll() {
+        return eventRepository.findAll()
+                .stream()
+                .map(EventResponseDTO::fromEntity)
+                .toList();
     }
 
     @Transactional(readOnly = true)
-    public Event findById(Long id) {
-        return eventRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Event not found: " + id
-                ));
+    public EventResponseDTO findById(Long id) {
+        return EventResponseDTO.fromEntity(findEventById(id));
     }
 
     @Transactional
     public Event updateEvent(Long id, Event eventUpdated) {
-        Event eventExistent = findById(id);
-
+        Event eventExistent = findEventById(id);
         eventExistent.setName(eventUpdated.getName());
         eventExistent.setDescription(eventUpdated.getDescription());
         eventExistent.setDate(eventUpdated.getDate());
         eventExistent.setStatus(eventUpdated.getStatus());
-
         return eventRepository.save(eventExistent);
     }
 
     @Transactional
     public void deleteEvent(Long id) {
-        Event event = findById(id);
+        Event event = findEventById(id);
         eventRepository.delete(event);
+    }
+
+    private Event findEventById(Long id) {
+        return eventRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Event not found: " + id));
     }
 }

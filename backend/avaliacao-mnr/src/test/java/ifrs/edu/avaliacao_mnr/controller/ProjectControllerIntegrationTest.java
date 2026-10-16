@@ -80,7 +80,8 @@ class ProjectControllerIntegrationTest {
                 mockMvc.perform(multipart("/api/projects/import")
                                 .file(file)
                                 .with(SecurityMockMvcRequestPostProcessors.user("admin")
-                                                .authorities(() -> "PROJECT_IMPORT", () -> "PROJECT_READ", () -> "EVENT_READ")))
+                                                .authorities(() -> "PROJECT_IMPORT", () -> "PROJECT_READ",
+                                                                () -> "EVENT_READ")))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.eventName", is("Etapa Nacional")))
                                 .andExpect(jsonPath("$.totalProcessed", greaterThan(0)))
@@ -98,7 +99,8 @@ class ProjectControllerIntegrationTest {
                 mockMvc.perform(multipart("/api/projects/import")
                                 .file(file)
                                 .with(SecurityMockMvcRequestPostProcessors.user("admin")
-                                                .authorities(() -> "PROJECT_IMPORT", () -> "PROJECT_READ", () -> "EVENT_READ")))
+                                                .authorities(() -> "PROJECT_IMPORT", () -> "PROJECT_READ",
+                                                                () -> "EVENT_READ")))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.totalCreated", is(0)))
                                 .andExpect(jsonPath("$.totalUpdated", is((int) projectCount)));
@@ -109,7 +111,8 @@ class ProjectControllerIntegrationTest {
                 // items in "content"
                 mockMvc.perform(get("/api/events/{eventId}/projects?size=100", eventId)
                                 .with(SecurityMockMvcRequestPostProcessors.user("admin")
-                                                .authorities(() -> "PROJECT_IMPORT", () -> "PROJECT_READ", () -> "EVENT_READ")))
+                                                .authorities(() -> "PROJECT_IMPORT", () -> "PROJECT_READ",
+                                                                () -> "EVENT_READ")))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.content", hasSize((int) projectCount)))
                                 .andExpect(jsonPath("$.content[0].name", notNullValue()));

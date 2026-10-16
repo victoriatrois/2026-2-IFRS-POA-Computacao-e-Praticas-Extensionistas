@@ -43,34 +43,34 @@ class CsvParserServiceTest {
     }
 
     @Test
-    void deveParsearLinhaValidaDoCsv() {
-        String conteudo = "Name,Nivel,Responsavel\nRobo Seguidor,2,Fulano de Tal\n";
+    void parsesValidRow() {
+        String content = "Name,Nivel,Responsavel\nRobo Seguidor,2,Fulano de Tal\n";
         MockMultipartFile file = new MockMultipartFile(
-                "file", "projetos.csv", "text/csv", conteudo.getBytes(StandardCharsets.UTF_8));
+                "file", "projetos.csv", "text/csv", content.getBytes(StandardCharsets.UTF_8));
 
-        List<ProjectImportDTO> resultado = csvParserService.parseCsv(file);
+        List<ProjectImportDTO> result = csvParserService.parseCsv(file);
 
-        assertEquals(1, resultado.size());
-        assertEquals("Robo Seguidor", resultado.get(0).projectName());
-        assertEquals("Fulano de Tal", resultado.get(0).participantName());
-        assertTrue(resultado.get(0).validated());
+        assertEquals(1, result.size());
+        assertEquals("Robo Seguidor", result.get(0).projectName());
+        assertEquals("Fulano de Tal", result.get(0).participantName());
+        assertTrue(result.get(0).validated());
     }
 
     @Test
-    void deveIgnorarLinhaSemNomeDeProjeto() {
+    void ignoresRowWithoutProjectName() {
         // "Name" header exists, but the row's cell is empty -> project
         // without a title is ignored (buildDto returns null).
-        String conteudo = "Name,Nivel\n,3\n";
+        String content = "Name,Nivel\n,3\n";
         MockMultipartFile file = new MockMultipartFile(
-                "file", "projetos.csv", "text/csv", conteudo.getBytes(StandardCharsets.UTF_8));
+                "file", "projetos.csv", "text/csv", content.getBytes(StandardCharsets.UTF_8));
 
-        List<ProjectImportDTO> resultado = csvParserService.parseCsv(file);
+        List<ProjectImportDTO> result = csvParserService.parseCsv(file);
 
-        assertTrue(resultado.isEmpty());
+        assertTrue(result.isEmpty());
     }
 
     @Test
-    void arquivoVazioDeveLancarIllegalArgumentException() {
+    void emptyFileThrows() {
         MockMultipartFile file = new MockMultipartFile(
                 "file", "vazio.csv", "text/csv", new byte[0]);
 
