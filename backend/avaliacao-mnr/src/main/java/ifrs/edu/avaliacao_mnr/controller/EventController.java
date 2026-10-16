@@ -24,10 +24,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/events")
 @Tag(name = "Events", description = "Event management")
+
 public class EventController {
 
         private final EventService eventService;
-
         public EventController(EventService eventService) {
                 this.eventService = eventService;
         }
@@ -37,9 +37,9 @@ public class EventController {
         @Operation(summary = "List events", description = "Lists all registered events.")
         @SecurityRequirement(name = "bearerAuth")
         @ApiResponses({
-                        @ApiResponse(responseCode = "200", description = "Events returned"),
-                        @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
-                        @ApiResponse(responseCode = "403", description = "Event-read permission required")
+                @ApiResponse(responseCode = "200", description = "Events returned"),
+                @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
+                @ApiResponse(responseCode = "403", description = "Event-read permission required")
         })
         public ResponseEntity<List<EventResponseDTO>> getAllEvents() {
                 return ResponseEntity.ok(eventService.listAll());
@@ -50,10 +50,10 @@ public class EventController {
         @Operation(summary = "Find event by ID", description = "Returns a registered event by its identifier.")
         @SecurityRequirement(name = "bearerAuth")
         @ApiResponses({
-                        @ApiResponse(responseCode = "200", description = "Event returned"),
-                        @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
-                        @ApiResponse(responseCode = "403", description = "Event-read permission required"),
-                        @ApiResponse(responseCode = "404", description = "Event not found")
+                @ApiResponse(responseCode = "200", description = "Event returned"),
+                @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
+                @ApiResponse(responseCode = "403", description = "Event-read permission required"),
+                @ApiResponse(responseCode = "404", description = "Event not found")
         })
         public ResponseEntity<EventResponseDTO> getEventById(@PathVariable Long id) {
                 return ResponseEntity.ok(eventService.findById(id));
@@ -64,9 +64,9 @@ public class EventController {
         @Operation(summary = "Create event", description = "Creates a new event.")
         @SecurityRequirement(name = "bearerAuth")
         @ApiResponses({
-                        @ApiResponse(responseCode = "200", description = "Event created"),
-                        @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
-                        @ApiResponse(responseCode = "403", description = "Event-management permission required")
+                @ApiResponse(responseCode = "200", description = "Event created"),
+                @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
+                @ApiResponse(responseCode = "403", description = "Event-management permission required")
         })
         public ResponseEntity<Event> createEvent(@RequestBody Event event) {
                 return ResponseEntity.ok(eventService.createEvent(event));
@@ -77,14 +77,14 @@ public class EventController {
         @Operation(summary = "Update event", description = "Updates an existing event.")
         @SecurityRequirement(name = "bearerAuth")
         @ApiResponses({
-                        @ApiResponse(responseCode = "200", description = "Event updated"),
-                        @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
-                        @ApiResponse(responseCode = "403", description = "Event-management permission required"),
-                        @ApiResponse(responseCode = "404", description = "Event not found")
+                @ApiResponse(responseCode = "200", description = "Event updated"),
+                @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
+                @ApiResponse(responseCode = "403", description = "Event-management permission required"),
+                @ApiResponse(responseCode = "404", description = "Event not found")
         })
         public ResponseEntity<Event> updateEvent(
-                        @PathVariable Long id,
-                        @RequestBody Event event) {
+                @PathVariable Long id,
+                @RequestBody Event event) {
                 return ResponseEntity.ok(eventService.updateEvent(id, event));
         }
 
@@ -93,10 +93,10 @@ public class EventController {
         @Operation(summary = "Delete event", description = "Deletes an existing event.")
         @SecurityRequirement(name = "bearerAuth")
         @ApiResponses({
-                        @ApiResponse(responseCode = "204", description = "Event deleted"),
-                        @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
-                        @ApiResponse(responseCode = "403", description = "Event-management permission required"),
-                        @ApiResponse(responseCode = "404", description = "Event not found")
+                @ApiResponse(responseCode = "204", description = "Event deleted"),
+                @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
+                @ApiResponse(responseCode = "403", description = "Event-management permission required"),
+                @ApiResponse(responseCode = "404", description = "Event not found")
         })
         public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
                 eventService.deleteEvent(id);
