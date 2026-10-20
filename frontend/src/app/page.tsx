@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, useMemo, ChangeEvent, FormEvent } from "react";
+import AppHeader from "@/components/AppHeader";
 
 interface Project {
   id: number;
@@ -246,23 +247,13 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-16">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <AppHeader variant="admin" activeItem="home" />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
+        <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="bg-emerald-600 text-white font-bold px-2 py-0.5 rounded text-xs tracking-wider">
-                IFRS POA
-              </span>
-              <h1 className="text-xl font-bold tracking-tight text-slate-900">
-                Avaliação MNR - Importação e Gestão
-              </h1>
-            </div>
-            <p className="text-sm text-slate-500 mt-0.5">
-              Envio e acompanhamento de submissões de eventos, participantes e projetos
-            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Importação e gestão</h1>
+            <p className="mt-1 text-sm text-slate-500">Envio e acompanhamento de submissões de eventos, participantes e projetos.</p>
           </div>
-
           <button
             onClick={() => {
               if (selectedEventId !== null) {
@@ -270,14 +261,11 @@ export default function Home() {
               }
             }}
             disabled={isLoading || selectedEventId === null}
-            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 border border-slate-300 rounded-md text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 disabled:opacity-50 transition cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
           >
             {isLoading ? "Atualizando..." : "🔄 Atualizar Lista"}
           </button>
         </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
         {/* Upload Form Card */}
         <section className="bg-white rounded-xl border border-slate-200 shadow-xs p-6">
           <h2 className="text-lg font-semibold text-slate-900 mb-1">

@@ -1,5 +1,5 @@
 .page {
-  min-height: 100vh;
+  min-height: calc(100vh - 64px);
   background: #f4f8f2;
   color: #1c2b18;
   font-family: Arial, Helvetica, sans-serif;
@@ -33,8 +33,8 @@
 .user { background: #fff; color: #31462b; }
 .user b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #29abe2; color: white; font-size: 10px; }
 
-.workspace { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: calc(100vh - 66px); }
-.sidebar { position: sticky; top: 66px; display: flex; flex-direction: column; align-self: start; height: calc(100vh - 66px); border-right: 1px solid #d8e9d5; background: #f4f8f2; }
+.workspace { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: calc(100vh - 128px); }
+.sidebar { position: sticky; top: 64px; display: flex; flex-direction: column; align-self: start; height: calc(100vh - 128px); border-right: 1px solid #d8e9d5; background: #f4f8f2; }
 .sidebarControls { padding: 12px; border-bottom: 1px solid #d8e9d5; }
 .searchBox { display: flex; align-items: center; gap: 9px; padding: 8px 11px; border: 1px solid #d3e7cf; border-radius: 9px; background: white; color: #587a4e; }
 .searchBox > span { font-size: 22px; line-height: 1; }
