@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import AppHeader from "@/components/AppHeader";
 import { evaluationCriteria, mockProjects, type DemoProject } from "./mockData";
 import styles from "./page.module.css";
 
@@ -67,25 +68,9 @@ export default function AvaliacaoPage() {
   }
 
   return (
-    <main className={styles.page}>
-      <header className={styles.header}>
-        <a className={styles.brand} href="/" aria-label="Voltar à página inicial">
-          <span className={styles.logoMark}>MNR</span>
-          <span className={styles.brandText}>GESTÃO DE<br />AVALIAÇÕES</span>
-        </a>
-        <nav className={styles.navigation} aria-label="Navegação principal">
-          <a href="/dashboard">▦ <span>Painel</span></a>
-          <a className={styles.activeNav} href="/avaliacao" aria-current="page">▣ <span>Avaliar</span></a>
-          <span aria-disabled="true" title="Disponível em outra etapa">♧ <span>Menções</span></span>
-          <span aria-disabled="true" title="Disponível em outra etapa">➤ <span>Feedback</span></span>
-          <span aria-disabled="true" title="Disponível em outra etapa">⇩ <span>Exportar</span></span>
-        </nav>
-        <div className={styles.userArea}>
-          <span className={styles.online}><span /> Demonstração</span>
-          <span className={styles.user}><b>AV</b> Avaliador MNR</span>
-        </div>
-      </header>
-
+    <>
+      <AppHeader variant="admin" activeItem="evaluate" />
+      <main className={styles.page}>
       <div className={styles.workspace}>
         <aside className={styles.sidebar} aria-label="Projetos para avaliar">
           <div className={styles.sidebarControls}>
@@ -260,7 +245,8 @@ export default function AvaliacaoPage() {
           )}
         </section>
       </div>
-    </main>
+      </main>
+    </>
   );
 }
 

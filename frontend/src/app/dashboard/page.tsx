@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import AppHeader from "@/components/AppHeader";
 import { mockProjects } from "./mockData";
 
 export interface ProjectDashboard {
@@ -86,6 +87,8 @@ export default function DashboardPage() {
   }, [displayedProjects]);
 
   return (
+    <>
+    <AppHeader variant="admin" activeItem="panel" />
     <main className="min-h-screen bg-[#f5f7f8] px-4 py-8 text-slate-900 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-7">
         <header className="flex flex-col gap-5 border-b border-slate-200 pb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -181,6 +184,7 @@ export default function DashboardPage() {
         <footer className="text-center text-xs text-slate-500">{demoMode ? "Dados fictícios para visualização do painel." : <>Indicadores calculados a partir dos projetos retornados por <code>/api/projects</code>.</>}</footer>
       </div>
     </main>
+    </>
   );
 }
 

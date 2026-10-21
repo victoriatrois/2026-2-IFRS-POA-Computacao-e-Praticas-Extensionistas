@@ -1,0 +1,52 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 24px;
+  border-bottom: 1px solid #dcebd8;
+  background: #fff;
+  color: #233322;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.identity { display: flex; flex: 0 0 auto; align-items: center; gap: 12px; }
+.brand { display: inline-flex; align-items: center; width: 93px; height: 34px; }
+.brand img { display: block; width: 93px; height: 34px; object-fit: contain; }
+.separator { width: 1px; height: 24px; background: #3cb54a; }
+.productName { color: #587a4e; font-size: 12px; white-space: nowrap; }
+.account { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; margin-left: auto; }
+.avatar { display: grid; width: 27px; height: 27px; place-items: center; border-radius: 50%; background: #e6f0e1; color: #31462b; font-size: 10px; font-weight: 700; }
+.userName { color: #31462b; font-size: 12px; white-space: nowrap; }
+.signOut { display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; padding: 7px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.icon { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+
+.admin { justify-content: space-between; }
+.navigation { display: flex; min-width: 0; align-items: center; justify-content: center; gap: 3px; }
+.navItem { display: inline-flex; align-items: center; gap: 6px; padding: 9px 10px; border-radius: 7px; color: #344331; font-size: 12px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+.navItem:hover { background: #f0f6ee; }
+.active { background: #29abe2; color: #fff; }
+.active:hover { background: #1698d0; }
+.unavailable { cursor: default; opacity: .7; }
+.unavailable:hover { background: transparent; }
+.login { justify-content: flex-start; }
+
+@media (max-width: 1050px) {
+  .admin { flex-wrap: wrap; justify-content: space-between; }
+  .navigation { order: 3; width: 100%; justify-content: center; }
+}
+
+@media (max-width: 700px) {
+  .header { position: relative; gap: 7px; padding: 8px 12px; }
+  .identity { gap: 8px; }
+  .brand, .brand img { width: 75px; }
+  .productName { font-size: 11px; }
+  .signOut { margin-left: 0; padding: 6px 4px; font-size: 0; }
+  .signOut .icon { width: 17px; height: 17px; }
+  .navigation { justify-content: space-between; gap: 0; overflow-x: auto; }
+  .navItem { flex-direction: column; gap: 3px; padding: 6px 7px; font-size: 10px; }
+  .navItem .icon { width: 16px; height: 16px; }
+}
