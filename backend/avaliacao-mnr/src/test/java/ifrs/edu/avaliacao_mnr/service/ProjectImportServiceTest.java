@@ -2,11 +2,11 @@ package ifrs.edu.avaliacao_mnr.service;
 
 import ifrs.edu.avaliacao_mnr.dto.ProjectImportDTO;
 import ifrs.edu.avaliacao_mnr.dto.ProjectImportResponseDTO;
-import ifrs.edu.avaliacao_mnr.event.entity.Event;
-import ifrs.edu.avaliacao_mnr.event.entity.EventStatus;
-import ifrs.edu.avaliacao_mnr.event.repository.EventRepository;
-import ifrs.edu.avaliacao_mnr.project.entity.Project;
-import ifrs.edu.avaliacao_mnr.project.repository.ProjectRepository;
+import ifrs.edu.avaliacao_mnr.enums.EventStatus;
+import ifrs.edu.avaliacao_mnr.model.Event;
+import ifrs.edu.avaliacao_mnr.model.Project;
+import ifrs.edu.avaliacao_mnr.repository.EventRepository;
+import ifrs.edu.avaliacao_mnr.repository.ProjectRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

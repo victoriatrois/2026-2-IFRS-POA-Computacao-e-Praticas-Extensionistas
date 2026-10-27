@@ -13,9 +13,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
-import ifrs.edu.avaliacao_mnr.event.entity.Event;
-import ifrs.edu.avaliacao_mnr.event.entity.EventStatus;
-import ifrs.edu.avaliacao_mnr.event.repository.EventRepository;
+import ifrs.edu.avaliacao_mnr.enums.EventStatus;
+import ifrs.edu.avaliacao_mnr.model.Event;
+import ifrs.edu.avaliacao_mnr.repository.EventRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc

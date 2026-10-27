@@ -2,7 +2,7 @@
 package ifrs.edu.avaliacao_mnr.controller;
 
 import ifrs.edu.avaliacao_mnr.dto.EvaluationResponseDTO;
-import ifrs.edu.avaliacao_mnr.evaluation.entity.Evaluation;
+import ifrs.edu.avaliacao_mnr.model.Evaluation;
 import ifrs.edu.avaliacao_mnr.security.AuthenticatedUser;
 import ifrs.edu.avaliacao_mnr.service.EvaluationService;
 import io.swagger.v3.oas.annotations.Operation;

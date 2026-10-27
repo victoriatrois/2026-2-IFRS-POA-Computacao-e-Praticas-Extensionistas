@@ -1,6 +1,5 @@
-package ifrs.edu.avaliacao_mnr.project.entity;
+package ifrs.edu.avaliacao_mnr.model;
 
-import ifrs.edu.avaliacao_mnr.event.entity.Event;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

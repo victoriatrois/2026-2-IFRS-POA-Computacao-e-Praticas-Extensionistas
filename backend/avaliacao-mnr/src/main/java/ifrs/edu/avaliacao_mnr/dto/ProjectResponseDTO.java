@@ -1,6 +1,6 @@
 package ifrs.edu.avaliacao_mnr.dto;
 
-import ifrs.edu.avaliacao_mnr.project.entity.Project;
+import ifrs.edu.avaliacao_mnr.model.Project;
 import java.time.OffsetDateTime;
 
 public record ProjectResponseDTO(

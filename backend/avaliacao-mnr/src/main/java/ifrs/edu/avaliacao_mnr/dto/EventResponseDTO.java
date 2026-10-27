@@ -1,7 +1,7 @@
 package ifrs.edu.avaliacao_mnr.dto;
 
-import ifrs.edu.avaliacao_mnr.event.entity.Event;
-import ifrs.edu.avaliacao_mnr.event.entity.EventStatus;
+import ifrs.edu.avaliacao_mnr.enums.EventStatus;
+import ifrs.edu.avaliacao_mnr.model.Event;
 
 import java.time.LocalDate;
 

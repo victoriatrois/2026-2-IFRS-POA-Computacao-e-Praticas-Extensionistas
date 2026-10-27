@@ -1,6 +1,6 @@
 package ifrs.edu.avaliacao_mnr.controller;
 
-import ifrs.edu.avaliacao_mnr.event.entity.Event;
+import ifrs.edu.avaliacao_mnr.model.Event;
 import ifrs.edu.avaliacao_mnr.service.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

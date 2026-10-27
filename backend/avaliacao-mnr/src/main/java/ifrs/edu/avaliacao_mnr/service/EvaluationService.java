@@ -2,7 +2,7 @@
 package ifrs.edu.avaliacao_mnr.service;
 
 import ifrs.edu.avaliacao_mnr.dto.EvaluationResponseDTO;
-import ifrs.edu.avaliacao_mnr.evaluation.entity.Evaluation;
+import ifrs.edu.avaliacao_mnr.model.Evaluation;
 import ifrs.edu.avaliacao_mnr.model.User;
 import ifrs.edu.avaliacao_mnr.repository.EvaluationRepository;
 import ifrs.edu.avaliacao_mnr.repository.UserRepository;

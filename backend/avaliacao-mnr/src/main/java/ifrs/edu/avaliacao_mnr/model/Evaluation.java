@@ -1,6 +1,6 @@
-package ifrs.edu.avaliacao_mnr.evaluation.entity;
+package ifrs.edu.avaliacao_mnr.model;
 
-import ifrs.edu.avaliacao_mnr.model.User;
+import ifrs.edu.avaliacao_mnr.enums.EvaluationStatus;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -33,7 +33,6 @@ public class Evaluation {
             createdAt = LocalDateTime.now();
         }
     }
-
 
     public Evaluation() {
     }
@@ -77,6 +76,4 @@ public class Evaluation {
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
-
-    
 }

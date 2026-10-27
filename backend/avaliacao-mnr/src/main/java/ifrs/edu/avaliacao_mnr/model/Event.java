@@ -1,5 +1,6 @@
-package ifrs.edu.avaliacao_mnr.event.entity;
+package ifrs.edu.avaliacao_mnr.model;
 
+import ifrs.edu.avaliacao_mnr.enums.EventStatus;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -28,14 +29,13 @@ public class Event {
 
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
-    
+
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {
             createdAt = OffsetDateTime.now();
         }
     }
-
 
     public Event() {
     }
@@ -87,6 +87,4 @@ public class Event {
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
     }
-
-    
 }

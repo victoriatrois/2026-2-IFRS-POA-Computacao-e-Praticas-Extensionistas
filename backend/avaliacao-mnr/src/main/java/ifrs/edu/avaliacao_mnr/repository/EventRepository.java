@@ -1,6 +1,6 @@
-package ifrs.edu.avaliacao_mnr.event.repository;
+package ifrs.edu.avaliacao_mnr.repository;
 
-import ifrs.edu.avaliacao_mnr.event.entity.Event;
+import ifrs.edu.avaliacao_mnr.model.Event;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

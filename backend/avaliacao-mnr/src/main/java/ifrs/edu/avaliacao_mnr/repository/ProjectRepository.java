@@ -1,6 +1,6 @@
-package ifrs.edu.avaliacao_mnr.project.repository;
+package ifrs.edu.avaliacao_mnr.repository;
 
-import ifrs.edu.avaliacao_mnr.project.entity.Project;
+import ifrs.edu.avaliacao_mnr.model.Project;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
