@@ -3,11 +3,11 @@ package ifrs.edu.avaliacao_mnr.service;
 import ifrs.edu.avaliacao_mnr.dto.ProjectImportDTO;
 import ifrs.edu.avaliacao_mnr.dto.ProjectImportResponseDTO;
 import ifrs.edu.avaliacao_mnr.dto.ProjectResponseDTO;
-import ifrs.edu.avaliacao_mnr.event.entity.Event;
-import ifrs.edu.avaliacao_mnr.event.entity.EventStatus;
-import ifrs.edu.avaliacao_mnr.event.repository.EventRepository;
-import ifrs.edu.avaliacao_mnr.project.entity.Project;
-import ifrs.edu.avaliacao_mnr.project.repository.ProjectRepository;
+import ifrs.edu.avaliacao_mnr.enums.EventStatus;
+import ifrs.edu.avaliacao_mnr.model.Event;
+import ifrs.edu.avaliacao_mnr.model.Project;
+import ifrs.edu.avaliacao_mnr.repository.EventRepository;
+import ifrs.edu.avaliacao_mnr.repository.ProjectRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -95,7 +95,7 @@ public class ProjectImportService {
                 project = new Project();
                 project.setEvent(event);
                 project.setName(dto.projectName());
-                project.setCreatedAt(LocalDateTime.now());
+                project.setCreatedAt(OffsetDateTime.now());
                 totalCreated++;
             }
 
@@ -196,7 +196,7 @@ public class ProjectImportService {
                     newEvent.setDescription("Criado automaticamente via importação");
                     newEvent.setDate(LocalDate.now());
                     newEvent.setStatus(EventStatus.OPEN);
-                    newEvent.setCreatedAt(LocalDateTime.now());
+                    newEvent.setCreatedAt(OffsetDateTime.now());
                     return eventRepository.save(newEvent);
                 });
     }

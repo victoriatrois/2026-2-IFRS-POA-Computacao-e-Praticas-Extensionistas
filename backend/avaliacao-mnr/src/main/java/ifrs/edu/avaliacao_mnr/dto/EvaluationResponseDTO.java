@@ -1,7 +1,7 @@
 package ifrs.edu.avaliacao_mnr.dto;
 
-import ifrs.edu.avaliacao_mnr.evaluation.entity.Evaluation;
-import ifrs.edu.avaliacao_mnr.evaluation.entity.EvaluationStatus;
+import ifrs.edu.avaliacao_mnr.enums.EvaluationStatus;
+import ifrs.edu.avaliacao_mnr.model.Evaluation;
 
 import java.time.LocalDateTime;
 

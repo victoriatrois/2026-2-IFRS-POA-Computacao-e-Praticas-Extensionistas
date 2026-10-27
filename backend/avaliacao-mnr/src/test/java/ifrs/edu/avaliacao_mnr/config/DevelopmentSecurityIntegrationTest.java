@@ -11,11 +11,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
-import ifrs.edu.avaliacao_mnr.event.entity.Event;
-import ifrs.edu.avaliacao_mnr.event.entity.EventStatus;
-import ifrs.edu.avaliacao_mnr.event.repository.EventRepository;
+import ifrs.edu.avaliacao_mnr.enums.EventStatus;
+import ifrs.edu.avaliacao_mnr.model.Event;
+import ifrs.edu.avaliacao_mnr.repository.EventRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -34,7 +34,7 @@ class DevelopmentSecurityIntegrationTest {
         e.setName("dev_event");
         e.setDate(LocalDate.now());
         e.setStatus(EventStatus.OPEN);
-        e.setCreatedAt(LocalDateTime.now());
+        e.setCreatedAt(OffsetDateTime.now());
         e = eventRepository.save(e);
 
         mockMvc.perform(get("/api/events/" + e.getId() + "/projects"))

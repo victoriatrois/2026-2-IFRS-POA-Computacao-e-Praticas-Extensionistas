@@ -1,7 +1,7 @@
 package ifrs.edu.avaliacao_mnr.controller;
 
-import ifrs.edu.avaliacao_mnr.event.repository.EventRepository;
-import ifrs.edu.avaliacao_mnr.project.repository.ProjectRepository;
+import ifrs.edu.avaliacao_mnr.repository.EventRepository;
+import ifrs.edu.avaliacao_mnr.repository.ProjectRepository;
 import ifrs.edu.avaliacao_mnr.service.PdfPageValidationService;
 import ifrs.edu.avaliacao_mnr.service.VideoAnalyzerService;
 import org.junit.jupiter.api.BeforeEach;

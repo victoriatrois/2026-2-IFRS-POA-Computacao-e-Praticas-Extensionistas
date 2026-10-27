@@ -1,5 +1,7 @@
 package ifrs.edu.avaliacao_mnr.security;
 
+import ifrs.edu.avaliacao_mnr.service.AppUserDetailsService;
+import ifrs.edu.avaliacao_mnr.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;

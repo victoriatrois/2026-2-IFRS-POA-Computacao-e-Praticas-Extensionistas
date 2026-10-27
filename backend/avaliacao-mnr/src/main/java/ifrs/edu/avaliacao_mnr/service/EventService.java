@@ -1,7 +1,7 @@
 package ifrs.edu.avaliacao_mnr.service;
 
-import ifrs.edu.avaliacao_mnr.event.entity.Event;
-import ifrs.edu.avaliacao_mnr.event.repository.EventRepository;
+import ifrs.edu.avaliacao_mnr.model.Event;
+import ifrs.edu.avaliacao_mnr.repository.EventRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

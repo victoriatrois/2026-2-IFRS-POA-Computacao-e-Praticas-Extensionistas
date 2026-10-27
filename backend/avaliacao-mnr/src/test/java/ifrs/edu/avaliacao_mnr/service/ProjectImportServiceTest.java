@@ -2,11 +2,11 @@ package ifrs.edu.avaliacao_mnr.service;
 
 import ifrs.edu.avaliacao_mnr.dto.ProjectImportDTO;
 import ifrs.edu.avaliacao_mnr.dto.ProjectImportResponseDTO;
-import ifrs.edu.avaliacao_mnr.event.entity.Event;
-import ifrs.edu.avaliacao_mnr.event.entity.EventStatus;
-import ifrs.edu.avaliacao_mnr.event.repository.EventRepository;
-import ifrs.edu.avaliacao_mnr.project.entity.Project;
-import ifrs.edu.avaliacao_mnr.project.repository.ProjectRepository;
+import ifrs.edu.avaliacao_mnr.enums.EventStatus;
+import ifrs.edu.avaliacao_mnr.model.Event;
+import ifrs.edu.avaliacao_mnr.model.Project;
+import ifrs.edu.avaliacao_mnr.repository.EventRepository;
+import ifrs.edu.avaliacao_mnr.repository.ProjectRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,7 +56,7 @@ class ProjectImportServiceTest {
         savedEvent.setName("Etapa Regional");
         savedEvent.setDate(LocalDate.now());
         savedEvent.setStatus(EventStatus.OPEN);
-        savedEvent.setCreatedAt(LocalDateTime.now());
+        savedEvent.setCreatedAt(OffsetDateTime.now());
         when(eventRepository.save(any(Event.class))).thenReturn(savedEvent);
 
         ProjectImportDTO dto1 = new ProjectImportDTO(
@@ -72,7 +72,7 @@ class ProjectImportServiceTest {
         savedProject.setEvent(savedEvent);
         savedProject.setValidated(true);
         savedProject.setMarkedForReview(false);
-        savedProject.setCreatedAt(LocalDateTime.now());
+        savedProject.setCreatedAt(OffsetDateTime.now());
         when(projectRepository.save(any(Project.class))).thenReturn(savedProject);
 
         ProjectImportResponseDTO response = importService.importProjectsFromCsv(file, null, null);
@@ -109,7 +109,7 @@ class ProjectImportServiceTest {
         existingProject.setId(200L);
         existingProject.setEvent(existingEvent);
         existingProject.setName("Robô Seguidor");
-        existingProject.setCreatedAt(LocalDateTime.now().minusDays(1));
+        existingProject.setCreatedAt(OffsetDateTime.now().minusDays(1));
         when(projectRepository.findByEventIdAndNameIgnoreCase(20L, "Robô Seguidor"))
                 .thenReturn(Optional.of(existingProject));
 

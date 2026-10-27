@@ -2,7 +2,10 @@ package ifrs.edu.avaliacao_mnr.service;
 
 import ifrs.edu.avaliacao_mnr.model.User;
 import ifrs.edu.avaliacao_mnr.repository.UserRepository;
+import ifrs.edu.avaliacao_mnr.enums.Role;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +36,11 @@ public class UserService {
 
     public List<User> listAll() {
         return userRepository.findAll();
+    }
+
+    public Page<User> searchUsers(String search, Role role, Boolean active, Pageable pageable) {
+        String normalizedSearch = search == null || search.isBlank() ? null : search.trim().toLowerCase(Locale.ROOT);
+        return userRepository.searchUsers(role, active, normalizedSearch, pageable);
     }
 
     public User findById(UUID id) {
