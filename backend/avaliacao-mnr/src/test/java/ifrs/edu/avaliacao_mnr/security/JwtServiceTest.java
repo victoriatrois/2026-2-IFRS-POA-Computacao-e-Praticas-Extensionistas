@@ -2,6 +2,7 @@ package ifrs.edu.avaliacao_mnr.security;
 
 import ifrs.edu.avaliacao_mnr.enums.Role;
 import ifrs.edu.avaliacao_mnr.model.User;
+import ifrs.edu.avaliacao_mnr.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;

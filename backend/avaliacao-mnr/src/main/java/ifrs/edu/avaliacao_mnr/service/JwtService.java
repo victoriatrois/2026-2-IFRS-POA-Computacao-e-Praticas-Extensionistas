@@ -1,6 +1,7 @@
-package ifrs.edu.avaliacao_mnr.security;
+package ifrs.edu.avaliacao_mnr.service;
 
 import ifrs.edu.avaliacao_mnr.model.User;
+import ifrs.edu.avaliacao_mnr.security.AuthenticatedUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;

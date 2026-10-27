@@ -1,0 +1,5 @@
+ALTER TABLE auth_audit_events RENAME TO tb_audit_events;
+
+ALTER INDEX idx_auth_audit_events_user_id RENAME TO idx_tb_audit_events_user_id;
+ALTER INDEX idx_auth_audit_events_created_at RENAME TO idx_tb_audit_events_created_at;
+ALTER INDEX idx_auth_audit_events_type RENAME TO idx_tb_audit_events_type;

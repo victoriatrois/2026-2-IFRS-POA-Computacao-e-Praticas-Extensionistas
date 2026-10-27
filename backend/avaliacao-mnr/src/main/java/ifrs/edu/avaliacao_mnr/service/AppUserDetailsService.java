@@ -1,6 +1,8 @@
-package ifrs.edu.avaliacao_mnr.security;
+package ifrs.edu.avaliacao_mnr.service;
 
+import ifrs.edu.avaliacao_mnr.model.User;
 import ifrs.edu.avaliacao_mnr.repository.UserRepository;
+import ifrs.edu.avaliacao_mnr.security.AuthenticatedUser;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,7 +22,7 @@ public class AppUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return userRepository.findByEmailIgnoreCase(email.trim().toLowerCase(Locale.ROOT))
-                .filter(user -> user.isActive())
+                .filter(User::isActive)
                 .map(AuthenticatedUser::new)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found or inactive"));
     }

@@ -1,7 +1,7 @@
 package ifrs.edu.avaliacao_mnr.dto;
 
 import ifrs.edu.avaliacao_mnr.project.entity.Project;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 public record ProjectResponseDTO(
         Long id,
@@ -16,8 +16,8 @@ public record ProjectResponseDTO(
         String institutionName,
         boolean markedForReview,
         boolean validated,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        OffsetDateTime createdAt,
+        OffsetDateTime updatedAt
 ) {
     public static ProjectResponseDTO fromEntity(Project project) {
         return new ProjectResponseDTO(

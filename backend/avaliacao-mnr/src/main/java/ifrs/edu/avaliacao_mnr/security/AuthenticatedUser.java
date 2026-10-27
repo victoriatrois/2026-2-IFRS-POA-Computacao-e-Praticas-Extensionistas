@@ -1,7 +1,7 @@
 package ifrs.edu.avaliacao_mnr.security;
 
-import ifrs.edu.avaliacao_mnr.authorization.Permission;
 import ifrs.edu.avaliacao_mnr.authorization.RolePermissions;
+import ifrs.edu.avaliacao_mnr.enums.Permission;
 import ifrs.edu.avaliacao_mnr.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

@@ -1,5 +1,6 @@
 package ifrs.edu.avaliacao_mnr.authorization;
 
+import ifrs.edu.avaliacao_mnr.enums.Permission;
 import ifrs.edu.avaliacao_mnr.enums.Role;
 
 import java.util.EnumSet;

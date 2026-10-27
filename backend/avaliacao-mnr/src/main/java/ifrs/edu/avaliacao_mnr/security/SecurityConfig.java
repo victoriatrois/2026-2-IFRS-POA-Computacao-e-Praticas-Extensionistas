@@ -1,8 +1,9 @@
 package ifrs.edu.avaliacao_mnr.security;
 
-import ifrs.edu.avaliacao_mnr.authorization.Permission;
+import ifrs.edu.avaliacao_mnr.enums.AuditEventType;
+import ifrs.edu.avaliacao_mnr.enums.Permission;
 import ifrs.edu.avaliacao_mnr.security.AuthenticatedUser;
-import ifrs.edu.avaliacao_mnr.service.AuthAuditService;
+import ifrs.edu.avaliacao_mnr.service.AuditEventService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,10 +30,10 @@ import java.io.IOException;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final AuthAuditService auditService;
+    private final AuditEventService auditService;
     private final Environment environment;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, AuthAuditService auditService,
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, AuditEventService auditService,
             Environment environment) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.auditService = auditService;
@@ -47,7 +48,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, exception) -> {
-                            auditService.record("UNAUTHENTICATED_ACCESS", null, null, false,
+                            auditService.record(AuditEventType.ACCESS_DENIED, null, null, false,
                                     request.getMethod() + " " + request.getRequestURI(), request);
                             writeError(response, HttpServletResponse.SC_UNAUTHORIZED, "unauthorized");
                         })
@@ -55,10 +56,10 @@ public class SecurityConfig {
                             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
                             if (authentication != null && authentication.isAuthenticated()
                                     && authentication.getPrincipal() instanceof AuthenticatedUser user) {
-                                auditService.recordActor("ACCESS_DENIED", user.getId(), user.getEmail(), false,
+                                auditService.recordActor(AuditEventType.ACCESS_DENIED, user.getId(), user.getEmail(), false,
                                         request.getMethod() + " " + request.getRequestURI(), request);
                             } else {
-                                auditService.record("ACCESS_DENIED", null, null, false,
+                                auditService.record(AuditEventType.ACCESS_DENIED, null, null, false,
                                         request.getMethod() + " " + request.getRequestURI(), request);
                             }
                             writeError(response, HttpServletResponse.SC_FORBIDDEN, "forbidden");

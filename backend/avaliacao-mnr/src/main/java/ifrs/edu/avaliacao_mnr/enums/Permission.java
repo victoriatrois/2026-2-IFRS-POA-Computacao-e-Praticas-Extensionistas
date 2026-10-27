@@ -1,4 +1,4 @@
-package ifrs.edu.avaliacao_mnr.authorization;
+package ifrs.edu.avaliacao_mnr.enums;
 
 public enum Permission {
     USER_MANAGE,

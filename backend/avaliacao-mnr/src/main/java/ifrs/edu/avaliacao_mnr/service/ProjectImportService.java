@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -95,7 +95,7 @@ public class ProjectImportService {
                 project = new Project();
                 project.setEvent(event);
                 project.setName(dto.projectName());
-                project.setCreatedAt(LocalDateTime.now());
+                project.setCreatedAt(OffsetDateTime.now());
                 totalCreated++;
             }
 
@@ -196,7 +196,7 @@ public class ProjectImportService {
                     newEvent.setDescription("Criado automaticamente via importação");
                     newEvent.setDate(LocalDate.now());
                     newEvent.setStatus(EventStatus.OPEN);
-                    newEvent.setCreatedAt(LocalDateTime.now());
+                    newEvent.setCreatedAt(OffsetDateTime.now());
                     return eventRepository.save(newEvent);
                 });
     }

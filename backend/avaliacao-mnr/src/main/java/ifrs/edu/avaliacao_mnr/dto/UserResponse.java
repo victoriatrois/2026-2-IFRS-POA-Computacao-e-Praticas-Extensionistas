@@ -1,4 +1,4 @@
-package ifrs.edu.avaliacao_mnr.auth.dto;
+package ifrs.edu.avaliacao_mnr.dto;
 
 import ifrs.edu.avaliacao_mnr.model.User;
 

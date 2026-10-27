@@ -12,8 +12,8 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "auth_audit_events")
-public class AuthAuditEvent {
+@Table(name = "tb_audit_events")
+public class AuditEventEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

@@ -3,7 +3,7 @@ package ifrs.edu.avaliacao_mnr.auth;
 import com.jayway.jsonpath.JsonPath;
 import ifrs.edu.avaliacao_mnr.enums.Role;
 import ifrs.edu.avaliacao_mnr.model.User;
-import ifrs.edu.avaliacao_mnr.repository.AuthAuditEventRepository;
+import ifrs.edu.avaliacao_mnr.repository.AuditEventRepository;
 import ifrs.edu.avaliacao_mnr.repository.RefreshTokenRepository;
 import ifrs.edu.avaliacao_mnr.repository.UserRepository;
 import ifrs.edu.avaliacao_mnr.service.UserService;
@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -43,7 +44,7 @@ class AuthFlowIntegrationTest {
     private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
-    private AuthAuditEventRepository auditEventRepository;
+        private AuditEventRepository auditEventRepository;
 
     @Autowired
     private UserService userService;
@@ -92,9 +93,9 @@ class AuthFlowIntegrationTest {
                 .andExpect(status().isUnauthorized());
 
         assertTrue(auditEventRepository.findAll().stream()
-                .anyMatch(event -> event.getEventType().equals("LOGIN") && event.isSuccessful()));
+                .anyMatch(event -> event.getEventType().equals("LOGIN_SUCCESS") && event.isSuccessful()));
         assertTrue(auditEventRepository.findAll().stream()
-                .anyMatch(event -> event.getEventType().equals("REFRESH") && event.isSuccessful()));
+                .anyMatch(event -> event.getEventType().equals("TOKEN_REFRESH") && event.isSuccessful()));
         assertTrue(auditEventRepository.findAll().stream()
                 .anyMatch(event -> event.getEventType().equals("LOGOUT") && event.isSuccessful()));
     }
@@ -117,14 +118,15 @@ class AuthFlowIntegrationTest {
         String adminToken = loginToken("admin@example.com", PASSWORD, "accessToken");
         mockMvc.perform(get("/users").header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(2)));
+                .andExpect(jsonPath("$.content", org.hamcrest.Matchers.hasSize(2)))
+                .andExpect(jsonPath("$.page.totalElements").value(2));
 
         assertTrue(auditEventRepository.findAll().stream()
                 .anyMatch(event -> event.getEventType().equals("ACCESS_DENIED") && !event.isSuccessful()
                         && evaluator.getId().equals(event.getUserId())
                         && event.getEmail().equals("evaluator@example.com")));
         assertTrue(auditEventRepository.findAll().stream()
-                .anyMatch(event -> event.getEventType().equals("LOGIN") && !event.isSuccessful()));
+                .anyMatch(event -> event.getEventType().equals("LOGIN_FAILURE") && !event.isSuccessful()));
     }
 
         @Test
@@ -153,6 +155,42 @@ class AuthFlowIntegrationTest {
                                                                 """))
                                 .andExpect(status().isCreated())
                                 .andExpect(jsonPath("$.cpf").value("529.982.247-25"));
+        }
+
+        @Test
+        void adminCanFilterAndPaginateUsersAndReadUserDetails() throws Exception {
+                userService.createUser(user("Second Evaluator", "second@example.com", Role.EVALUATOR,
+                        "123.456.789-02"), PASSWORD);
+                String adminToken = loginToken("admin@example.com", PASSWORD, "accessToken");
+                UUID evaluatorId = userRepository.findByEmailIgnoreCase("evaluator@example.com")
+                        .orElseThrow().getId();
+
+                mockMvc.perform(get("/users")
+                                .param("search", "evaluator")
+                                .param("role", "EVALUATOR")
+                                .param("active", "true")
+                                .param("page", "0")
+                                .param("size", "1")
+                                .header("Authorization", "Bearer " + adminToken))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.content", org.hamcrest.Matchers.hasSize(1)))
+                        .andExpect(jsonPath("$.page.totalElements").value(2))
+                        .andExpect(jsonPath("$.page.totalPages").value(2));
+
+                mockMvc.perform(get("/users/{id}", evaluatorId)
+                                .header("Authorization", "Bearer " + adminToken))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.id").value(evaluatorId.toString()))
+                        .andExpect(jsonPath("$.email").value("evaluator@example.com"));
+
+                mockMvc.perform(get("/users/{id}", UUID.randomUUID())
+                                .header("Authorization", "Bearer " + adminToken))
+                        .andExpect(status().isNotFound());
+
+                String evaluatorToken = loginToken("evaluator@example.com", PASSWORD, "accessToken");
+                mockMvc.perform(get("/users/{id}", evaluatorId)
+                                .header("Authorization", "Bearer " + evaluatorToken))
+                        .andExpect(status().isForbidden());
         }
 
         private String loginToken(String email, String password, String property) throws Exception {

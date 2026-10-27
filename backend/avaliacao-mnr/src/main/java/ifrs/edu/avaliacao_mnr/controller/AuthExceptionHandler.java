@@ -1,5 +1,6 @@
-package ifrs.edu.avaliacao_mnr.config;
+package ifrs.edu.avaliacao_mnr.controller;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -21,5 +22,11 @@ public class AuthExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException exception) {
         return ResponseEntity.badRequest().body(Map.of("error", "validation_failed"));
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(EntityNotFoundException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "not_found", "message", exception.getMessage()));
     }
 }
