@@ -1,5 +1,7 @@
+import Image from "next/image";
 import type { Metadata } from "next";
 import AppHeader from "@/components/AppHeader";
+import WorkSearch from "./WorkSearch";
 import styles from "./page.module.css";
 import { evaluatorDashboardMock as dashboard } from "./mockData";
 
@@ -76,9 +78,7 @@ export default function EvaluatorHomePage() {
               <span style={{ width: `${completionPercentage}%` }} />
             </div>
             <p>{dashboard.completedCount} de {dashboard.assignedCount} concluídos</p>
-            <Link className={styles.primaryButton} href="/avaliacao">
-              Ver trabalhos
-            </Link>
+            <WorkSearch />
           </div>
         </section>
 
