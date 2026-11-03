@@ -5,7 +5,9 @@ import ifrs.edu.avaliacao_mnr.dto.EvaluationResponseDTO;
 import ifrs.edu.avaliacao_mnr.model.Evaluation;
 import ifrs.edu.avaliacao_mnr.model.User;
 import ifrs.edu.avaliacao_mnr.repository.EvaluationRepository;
+import ifrs.edu.avaliacao_mnr.repository.ProjectEvaluatorAssignmentRepository;
 import ifrs.edu.avaliacao_mnr.repository.UserRepository;
+import ifrs.edu.avaliacao_mnr.model.ProjectEvaluatorAssignment;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -20,13 +22,16 @@ public class EvaluationService {
 
     private final EvaluationRepository evaluationRepository;
     private final UserRepository userRepository;
+    private final ProjectEvaluatorAssignmentRepository assignmentRepository;
 
     public EvaluationService(
             EvaluationRepository evaluationRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            ProjectEvaluatorAssignmentRepository assignmentRepository
     ) {
         this.evaluationRepository = evaluationRepository;
         this.userRepository = userRepository;
+        this.assignmentRepository = assignmentRepository;
     }
 
     @Transactional
@@ -38,9 +43,19 @@ public class EvaluationService {
                 .orElseThrow(() ->
                         new EntityNotFoundException("Authenticated user not found"));
 
-        // The evaluator must be the authenticated user, not a user
-        // supplied in the request body.
-        evaluation.setEvaluator(evaluator);
+        if (evaluation.getAssignment() != null) {
+            Long assignmentId = evaluation.getAssignment().getId();
+            ProjectEvaluatorAssignment assignment = assignmentRepository.findById(assignmentId)
+                    .orElseThrow(() -> new EntityNotFoundException("Assignment not found: " + assignmentId));
+            if (!assignment.getEvaluator().getId().equals(authenticatedUserId)) {
+                throw new AccessDeniedException("You cannot evaluate an assignment of another evaluator");
+            }
+            evaluation.setAssignment(assignment);
+            evaluation.setEvaluator(assignment.getEvaluator());
+        } else {
+            // Legacy evaluations remain supported, but cannot appear in the assigned-project list.
+            evaluation.setEvaluator(evaluator);
+        }
 
         Evaluation savedEvaluation = evaluationRepository.save(evaluation);
         return EvaluationResponseDTO.fromEntity(savedEvaluation);
