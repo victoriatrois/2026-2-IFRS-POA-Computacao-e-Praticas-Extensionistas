@@ -7,6 +7,7 @@ import ifrs.edu.avaliacao_mnr.model.ProjectEvaluatorAssignment;
 import java.time.LocalDateTime;
 
 public record EvaluatorProjectResponseDTO(
+        Long assignmentId,
         ProjectResponseDTO project,
         EvaluatorProjectStatus status,
         LocalDateTime assignedAt
@@ -21,6 +22,7 @@ public record EvaluatorProjectResponseDTO(
                         ? EvaluatorProjectStatus.SUBMITTED
                         : EvaluatorProjectStatus.IN_PROGRESS;
         return new EvaluatorProjectResponseDTO(
+                assignment.getId(),
                 ProjectResponseDTO.fromEntity(assignment.getProject()),
                 status,
                 assignment.getAssignedAt()
