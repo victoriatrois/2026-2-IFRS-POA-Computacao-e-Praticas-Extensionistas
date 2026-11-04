@@ -2,6 +2,7 @@
 package ifrs.edu.avaliacao_mnr.controller;
 
 import ifrs.edu.avaliacao_mnr.dto.EvaluationResponseDTO;
+import ifrs.edu.avaliacao_mnr.dto.EvaluationDetailResponseDTO;
 import ifrs.edu.avaliacao_mnr.dto.EvaluationScoreRequestDTO;
 import ifrs.edu.avaliacao_mnr.dto.EvaluationScoreResponseDTO;
 import ifrs.edu.avaliacao_mnr.model.Evaluation;
@@ -64,6 +65,15 @@ public class EvaluationController {
             @PathVariable Long id
     ) {
         return ResponseEntity.ok(evaluationService.findById(id));
+    }
+
+    @GetMapping("/by-assignment/{assignmentId}")
+    @PreAuthorize("hasAuthority('EVALUATION_READ')")
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<EvaluationDetailResponseDTO> getByAssignment(
+            @PathVariable Long assignmentId,
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        return ResponseEntity.ok(evaluationService.findByAssignment(assignmentId, authenticatedUser.getId()));
     }
 
     @PostMapping
