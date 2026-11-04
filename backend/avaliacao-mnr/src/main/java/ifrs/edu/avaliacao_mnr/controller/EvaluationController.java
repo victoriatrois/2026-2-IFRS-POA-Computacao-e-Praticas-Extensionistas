@@ -2,9 +2,12 @@
 package ifrs.edu.avaliacao_mnr.controller;
 
 import ifrs.edu.avaliacao_mnr.dto.EvaluationResponseDTO;
+import ifrs.edu.avaliacao_mnr.dto.EvaluationScoreRequestDTO;
+import ifrs.edu.avaliacao_mnr.dto.EvaluationScoreResponseDTO;
 import ifrs.edu.avaliacao_mnr.model.Evaluation;
 import ifrs.edu.avaliacao_mnr.security.AuthenticatedUser;
 import ifrs.edu.avaliacao_mnr.service.EvaluationService;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -133,5 +136,16 @@ public class EvaluationController {
     ) {
         evaluationService.deleteEvaluation(id, authenticatedUser.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{evaluationId}/scores/{criterionId}")
+    @PreAuthorize("hasAuthority('EVALUATION_WRITE')")
+    public ResponseEntity<EvaluationScoreResponseDTO> saveScore(
+            @PathVariable Long evaluationId,
+            @PathVariable Long criterionId,
+            @Valid @RequestBody EvaluationScoreRequestDTO request,
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        return ResponseEntity.ok(evaluationService.saveScore(
+                evaluationId, criterionId, request, authenticatedUser.getId()));
     }
 }

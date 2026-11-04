@@ -17,6 +17,10 @@ public class Evaluation {
     @JoinColumn(name = "evaluator_id", nullable = false)
     private User evaluator;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignment_id", unique = true)
+    private ProjectEvaluatorAssignment assignment;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EvaluationStatus status;
@@ -51,6 +55,14 @@ public class Evaluation {
 
     public void setEvaluator(User evaluator) {
         this.evaluator = evaluator;
+    }
+
+    public ProjectEvaluatorAssignment getAssignment() {
+        return assignment;
+    }
+
+    public void setAssignment(ProjectEvaluatorAssignment assignment) {
+        this.assignment = assignment;
     }
 
     public EvaluationStatus getStatus() {
