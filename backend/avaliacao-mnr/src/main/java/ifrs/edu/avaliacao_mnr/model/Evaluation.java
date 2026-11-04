@@ -25,6 +25,24 @@ public class Evaluation {
     @Column(nullable = false)
     private EvaluationStatus status;
 
+    @Column(name = "article_present")
+    private Boolean articlePresent;
+
+    @Column(name = "video_present")
+    private Boolean videoPresent;
+
+    @Column(name = "honorable_mention")
+    private Boolean honorableMention;
+
+    @Column(name = "organization_notes", columnDefinition = "TEXT")
+    private String organizationNotes;
+
+    @Column(name = "participant_feedback", columnDefinition = "TEXT")
+    private String participantFeedback;
+
+    @OneToMany(mappedBy = "evaluation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<EvaluationScore> scores = new java.util.ArrayList<>();
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -72,6 +90,18 @@ public class Evaluation {
     public void setStatus(EvaluationStatus status) {
         this.status = status;
     }
+
+    public Boolean getArticlePresent() { return articlePresent; }
+    public void setArticlePresent(Boolean articlePresent) { this.articlePresent = articlePresent; }
+    public Boolean getVideoPresent() { return videoPresent; }
+    public void setVideoPresent(Boolean videoPresent) { this.videoPresent = videoPresent; }
+    public Boolean getHonorableMention() { return honorableMention; }
+    public void setHonorableMention(Boolean honorableMention) { this.honorableMention = honorableMention; }
+    public String getOrganizationNotes() { return organizationNotes; }
+    public void setOrganizationNotes(String organizationNotes) { this.organizationNotes = organizationNotes; }
+    public String getParticipantFeedback() { return participantFeedback; }
+    public void setParticipantFeedback(String participantFeedback) { this.participantFeedback = participantFeedback; }
+    public java.util.List<EvaluationScore> getScores() { return scores; }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

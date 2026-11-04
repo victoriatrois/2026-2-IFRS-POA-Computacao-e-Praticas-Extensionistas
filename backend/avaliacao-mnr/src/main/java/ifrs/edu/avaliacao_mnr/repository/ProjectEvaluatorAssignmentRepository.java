@@ -20,15 +20,16 @@ public interface ProjectEvaluatorAssignmentRepository
     @Query("""
             select a
             from ProjectEvaluatorAssignment a
+            left join a.evaluation e
             where a.evaluator.id = :evaluatorId
               and a.project.event.id = :eventId
               and (:search is null or lower(a.project.name) like lower(concat('%', :search, '%')))
               and (:level is null or a.project.level = :level)
               and (
                   :status is null
-                  or (:status = 'PENDING' and a.evaluation is null)
-                  or (:status = 'IN_PROGRESS' and a.evaluation.status = ifrs.edu.avaliacao_mnr.enums.EvaluationStatus.IN_PROGRESS)
-                  or (:status = 'SUBMITTED' and a.evaluation.status = ifrs.edu.avaliacao_mnr.enums.EvaluationStatus.SUBMITTED)
+                  or (:status = 'PENDING' and e is null)
+                  or (:status = 'IN_PROGRESS' and e.status = ifrs.edu.avaliacao_mnr.enums.EvaluationStatus.IN_PROGRESS)
+                  or (:status = 'SUBMITTED' and e.status = ifrs.edu.avaliacao_mnr.enums.EvaluationStatus.SUBMITTED)
               )
             """)
     Page<ProjectEvaluatorAssignment> findForEvaluator(
