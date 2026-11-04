@@ -3,6 +3,7 @@ package ifrs.edu.avaliacao_mnr.controller;
 import ifrs.edu.avaliacao_mnr.dto.ProjectImportResponseDTO;
 import ifrs.edu.avaliacao_mnr.dto.ProjectResponseDTO;
 import ifrs.edu.avaliacao_mnr.service.ProjectImportService;
+import ifrs.edu.avaliacao_mnr.dto.ProjectDashboardDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 // #44 No class-level `@RequestMapping`. Import remains at `/api/projects/import`, while listing uses `/api/events/{eventId}/projects`, so each method defines its full path.
 
@@ -67,6 +70,22 @@ public class ProjectController {
         Page<ProjectResponseDTO> projects = projectImportService.getProjectsByEvent(eventId, pageable);
         return ResponseEntity.ok(projects);
     }
+
+    
+    @GetMapping("/api/projects/dashboard")
+    @PreAuthorize("hasAuthority('PROJECT_READ')")
+    @Operation(
+            summary = "List all projects for the dashboard",
+            description = "Returns dashboard-safe project data from all events."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<List<ProjectDashboardDTO>> getDashboardProjects() {
+        List<ProjectDashboardDTO> projects =
+                projectImportService.getDashboardProjects();
+
+        return ResponseEntity.ok(projects);
+    }
+
 
     @GetMapping("/api/projects/{id}")
     @PreAuthorize("hasAuthority('PROJECT_READ')")

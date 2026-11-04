@@ -18,6 +18,18 @@ export interface ProjectDashboard {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
+async function fetchDashboardProjects(): Promise<ProjectDashboard[]> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/projects/dashboard`,
+  );
+
+  if (!response.ok) {
+    throw new Error(`A API respondeu com status ${response.status}.`);
+  }
+
+  return response.json();
+}
+
 function formatDate(value?: string | null) {
   if (!value) return "—";
   const date = new Date(value);
@@ -33,19 +45,22 @@ export default function DashboardPage() {
   const [demoMode, setDemoMode] = useState(false);
 
   const loadProjects = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/projects`);
-      if (!response.ok) throw new Error(`A API respondeu com status ${response.status}.`);
-      const data: ProjectDashboard[] = await response.json();
-      setProjects(data);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível carregar os projetos.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  setLoading(true);
+  setError(null);
+
+  try {
+    const data = await fetchDashboardProjects();
+    setProjects(data);
+  } catch (cause) {
+    setError(
+      cause instanceof Error
+        ? cause.message
+        : "Não foi possível carregar os projetos.",
+    );
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   const displayedProjects = demoMode ? mockProjects : projects;
 
@@ -181,7 +196,7 @@ export default function DashboardPage() {
             </div>
           )}
         </section>
-        <footer className="text-center text-xs text-slate-500">{demoMode ? "Dados fictícios para visualização do painel." : <>Indicadores calculados a partir dos projetos retornados por <code>/api/projects</code>.</>}</footer>
+        <footer className="text-center text-xs text-slate-500">{demoMode ? "Dados fictícios para visualização do painel." : <>Indicadores calculados a partir dos projetos retornados por <code>/api/projects/dashboard</code>.</>}</footer>
       </div>
     </main>
     </>
