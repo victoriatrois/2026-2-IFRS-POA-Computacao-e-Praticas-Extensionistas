@@ -2,6 +2,7 @@
 package ifrs.edu.avaliacao_mnr.service;
 
 import ifrs.edu.avaliacao_mnr.dto.EvaluationResponseDTO;
+import ifrs.edu.avaliacao_mnr.dto.EvaluationDetailResponseDTO;
 import ifrs.edu.avaliacao_mnr.dto.EvaluationScoreRequestDTO;
 import ifrs.edu.avaliacao_mnr.dto.EvaluationScoreResponseDTO;
 import ifrs.edu.avaliacao_mnr.model.Evaluation;
@@ -18,6 +19,8 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.time.LocalDateTime;
@@ -31,19 +34,22 @@ public class EvaluationService {
     private final ProjectEvaluatorAssignmentRepository assignmentRepository;
     private final EvaluationCriteriaRepository criteriaRepository;
     private final EvaluationScoreRepository scoreRepository;
+    private final EvaluationCriteriaService criteriaService;
 
     public EvaluationService(
             EvaluationRepository evaluationRepository,
             UserRepository userRepository,
             ProjectEvaluatorAssignmentRepository assignmentRepository,
             EvaluationCriteriaRepository criteriaRepository,
-            EvaluationScoreRepository scoreRepository
+            EvaluationScoreRepository scoreRepository,
+            EvaluationCriteriaService criteriaService
     ) {
         this.evaluationRepository = evaluationRepository;
         this.userRepository = userRepository;
         this.assignmentRepository = assignmentRepository;
         this.criteriaRepository = criteriaRepository;
         this.scoreRepository = scoreRepository;
+        this.criteriaService = criteriaService;
     }
 
     @Transactional
@@ -52,7 +58,7 @@ public class EvaluationService {
             UUID authenticatedUserId
     ) {
         if (evaluation.getAssignment() == null || evaluation.getAssignment().getId() == null) {
-            throw new IllegalArgumentException("An assignment is required to create an evaluation");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "An assignment is required to create an evaluation");
         }
 
         Long assignmentId = evaluation.getAssignment().getId();
@@ -62,14 +68,17 @@ public class EvaluationService {
             throw new AccessDeniedException("You cannot evaluate an assignment of another evaluator");
         }
         if (assignment.getEvaluation() != null) {
-            throw new IllegalArgumentException("An evaluation already exists for this assignment");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "An evaluation already exists for this assignment");
         }
         if (evaluation.getStatus() != ifrs.edu.avaliacao_mnr.enums.EvaluationStatus.IN_PROGRESS) {
-            throw new IllegalArgumentException("A new evaluation must start with IN_PROGRESS status");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A new evaluation must start with IN_PROGRESS status");
         }
 
+        evaluation.setId(null);
         evaluation.setAssignment(assignment);
         evaluation.setEvaluator(assignment.getEvaluator());
+        evaluation.setCreatedAt(null);
+        evaluation.setUpdatedAt(null);
 
         Evaluation savedEvaluation = evaluationRepository.save(evaluation);
         return EvaluationResponseDTO.fromEntity(savedEvaluation);
@@ -92,6 +101,13 @@ public class EvaluationService {
         return EvaluationResponseDTO.fromEntity(evaluation);
     }
 
+    @Transactional(readOnly = true)
+    public EvaluationDetailResponseDTO findByAssignment(Long assignmentId, UUID authenticatedUserId) {
+        Evaluation evaluation = evaluationRepository.findByAssignmentIdAndEvaluatorId(assignmentId, authenticatedUserId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evaluation not found"));
+        return EvaluationDetailResponseDTO.fromEntity(evaluation);
+    }
+
     @Transactional
     public EvaluationResponseDTO updateEvaluation(
             Long id,
@@ -107,17 +123,28 @@ public class EvaluationService {
                     "You cannot update another evaluator's evaluation");
         }
         if (existing.getStatus() == ifrs.edu.avaliacao_mnr.enums.EvaluationStatus.SUBMITTED) {
-            throw new IllegalStateException("Submitted evaluations cannot be changed");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Submitted evaluations cannot be changed");
         }
 
         if (evaluationUpdated.getStatus() == null) {
-            throw new IllegalArgumentException("Evaluation status is required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Evaluation status is required");
         }
         if (evaluationUpdated.getStatus() == ifrs.edu.avaliacao_mnr.enums.EvaluationStatus.SUBMITTED) {
+            copyFormAnswers(existing, evaluationUpdated);
+            if (!Boolean.TRUE.equals(existing.getArticlePresent())
+                    || !Boolean.TRUE.equals(existing.getVideoPresent())
+                    || existing.getHonorableMention() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Both materials and the honorable mention answer are required before submission");
+            }
             validateCompleteBeforeSubmission(existing);
         } else if (evaluationUpdated.getStatus()
                 != ifrs.edu.avaliacao_mnr.enums.EvaluationStatus.IN_PROGRESS) {
-            throw new IllegalArgumentException("Invalid evaluation status transition");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid evaluation status transition");
+        }
+
+        if (evaluationUpdated.getStatus() == ifrs.edu.avaliacao_mnr.enums.EvaluationStatus.IN_PROGRESS) {
+            copyFormAnswers(existing, evaluationUpdated);
         }
 
         existing.setStatus(evaluationUpdated.getStatus());
@@ -151,7 +178,7 @@ public class EvaluationService {
                 .orElseThrow(() -> new EntityNotFoundException("Evaluation not found: " + evaluationId));
         assertEvaluationOwner(evaluation, authenticatedUserId);
         if (evaluation.getStatus() == ifrs.edu.avaliacao_mnr.enums.EvaluationStatus.SUBMITTED) {
-            throw new IllegalStateException("Submitted evaluations cannot be changed");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Submitted evaluations cannot be changed");
         }
 
         EvaluationCriteria criterion = criteriaRepository.findById(criterionId)
@@ -160,8 +187,8 @@ public class EvaluationService {
                 || !criterion.getEvent().getId().equals(evaluation.getAssignment().getProject().getEvent().getId())) {
             throw new IllegalArgumentException("Criterion does not belong to the evaluation event");
         }
-        if (request.score() < 0 || request.score() > criterion.getMaxScore()) {
-            throw new IllegalArgumentException("Score must be between 0 and the criterion maximum");
+        if (request.score() > criterion.getMaxScore()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Score must not exceed the criterion maximum");
         }
 
         EvaluationScore score = scoreRepository
@@ -169,7 +196,7 @@ public class EvaluationService {
                 .orElseGet(EvaluationScore::new);
         score.setEvaluation(evaluation);
         score.setCriterion(criterion);
-        score.setScore(request.score());
+        score.setScore(request.score().doubleValue());
         score.setComment(request.comment());
         if (evaluation.getStatus() == ifrs.edu.avaliacao_mnr.enums.EvaluationStatus.IN_PROGRESS) {
             evaluation.setStatus(ifrs.edu.avaliacao_mnr.enums.EvaluationStatus.IN_PROGRESS);
@@ -191,12 +218,20 @@ public class EvaluationService {
         }
 
         Long eventId = evaluation.getAssignment().getProject().getEvent().getId();
-        List<EvaluationCriteria> criteria = criteriaRepository.findByEventIdOrderByOrderAsc(eventId);
+        List<EvaluationCriteria> criteria = criteriaService.ensureDefaults(eventId);
         boolean incomplete = criteria.stream()
                 .anyMatch(criterion -> !scoreRepository.existsByEvaluationIdAndCriterionId(
                         evaluation.getId(), criterion.getId()));
         if (incomplete) {
-            throw new IllegalStateException("All event criteria must be scored before submission");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "All event criteria must be scored before submission");
         }
+    }
+
+    private void copyFormAnswers(Evaluation target, Evaluation source) {
+        if (source.getArticlePresent() != null) target.setArticlePresent(source.getArticlePresent());
+        if (source.getVideoPresent() != null) target.setVideoPresent(source.getVideoPresent());
+        if (source.getHonorableMention() != null) target.setHonorableMention(source.getHonorableMention());
+        if (source.getOrganizationNotes() != null) target.setOrganizationNotes(source.getOrganizationNotes());
+        if (source.getParticipantFeedback() != null) target.setParticipantFeedback(source.getParticipantFeedback());
     }
 }
