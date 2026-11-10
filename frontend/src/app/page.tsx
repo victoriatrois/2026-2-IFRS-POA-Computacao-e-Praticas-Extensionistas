@@ -45,6 +45,10 @@ interface ImportSummary {
   totalMarkedForReview: number;
 }
 
+interface ProjectImportResponse extends ImportSummary {
+  projects: Project[];
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export default function Home() {
@@ -183,7 +187,7 @@ export default function Home() {
         throw new Error(errorText || `Falha no envio (HTTP ${res.status})`);
       }
 
-      const data = await res.json();
+      const data: ProjectImportResponse = await res.json();
       setSummary({
         eventId: data.eventId,
         eventName: data.eventName,
