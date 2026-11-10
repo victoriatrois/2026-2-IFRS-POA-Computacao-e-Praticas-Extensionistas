@@ -43,6 +43,9 @@ interface ImportSummary {
   totalCreated: number;
   totalUpdated: number;
   totalMarkedForReview: number;
+}
+
+interface ProjectImportResponse extends ImportSummary {
   projects: Project[];
 }
 
@@ -184,7 +187,7 @@ export default function Home() {
         throw new Error(errorText || `Falha no envio (HTTP ${res.status})`);
       }
 
-      const data: ImportSummary = await res.json();
+      const data: ProjectImportResponse = await res.json();
       setSummary({
         eventId: data.eventId,
         eventName: data.eventName,
