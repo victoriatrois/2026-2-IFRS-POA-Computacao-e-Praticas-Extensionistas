@@ -30,7 +30,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/avaliacao_mnr_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
-      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
+      JWT_SECRET: ${JWT_SECRET:-ndrzJtvwA6EOIZwxd0MJqjHIgUm4QAo2VBEAVM7qFFKP3WB9nJ}
       JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-PT15M}
       JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-P30D}
       BOOTSTRAP_ADMIN_ENABLED: ${BOOTSTRAP_ADMIN_ENABLED:-false}
@@ -42,6 +42,21 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: avaliacao-mnr-frontend:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      HOSTNAME: "0.0.0.0"
+      PORT: 3000
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
