@@ -2,6 +2,9 @@ package ifrs.edu.avaliacao_mnr.controller;
 
 import ifrs.edu.avaliacao_mnr.dto.ProjectImportResponseDTO;
 import ifrs.edu.avaliacao_mnr.dto.ProjectResponseDTO;
+import ifrs.edu.avaliacao_mnr.dto.EvaluatorProjectListResponseDTO;
+import ifrs.edu.avaliacao_mnr.security.AuthenticatedUser;
+import ifrs.edu.avaliacao_mnr.service.EvaluatorProjectService;
 import ifrs.edu.avaliacao_mnr.service.ProjectImportService;
 import ifrs.edu.avaliacao_mnr.dto.ProjectDashboardDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,9 +35,12 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectImportService projectImportService;
+    private final EvaluatorProjectService evaluatorProjectService;
 
-    public ProjectController(ProjectImportService projectImportService) {
+    public ProjectController(ProjectImportService projectImportService,
+                             EvaluatorProjectService evaluatorProjectService) {
         this.projectImportService = projectImportService;
+        this.evaluatorProjectService = evaluatorProjectService;
     }
 
     @PostMapping(value = "/api/projects/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -71,9 +78,8 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
-    
     @GetMapping("/api/projects/dashboard")
-    @PreAuthorize("hasAuthority('PROJECT_READ')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "List all projects for the dashboard",
             description = "Returns dashboard-safe project data from all events."
@@ -86,7 +92,30 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
-
+    @GetMapping("/api/events/{eventId}/evaluator/projects")
+    @PreAuthorize("hasAuthority('PROJECT_READ')")
+    @Operation(
+            summary = "List assigned projects for the evaluator",
+            description = "Lists only projects assigned to the authenticated evaluator and includes assignment totals."
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Assigned projects returned"),
+            @ApiResponse(responseCode = "400", description = "Invalid status filter"),
+            @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
+            @ApiResponse(responseCode = "403", description = "Project-read permission required"),
+            @ApiResponse(responseCode = "404", description = "Event not found")
+    })
+    public ResponseEntity<EvaluatorProjectListResponseDTO> listAssignedProjects(
+            @PathVariable Long eventId,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) String status,
+            Pageable pageable,
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser) {
+        return ResponseEntity.ok(evaluatorProjectService.list(
+                eventId, authenticatedUser.getId(), search, level, status, pageable));
+    }
     @GetMapping("/api/projects/{id}")
     @PreAuthorize("hasAuthority('PROJECT_READ')")
     @Operation(summary = "Get project by id", description = "Returns a single project. Available to ADMIN and EVALUATOR users.")
