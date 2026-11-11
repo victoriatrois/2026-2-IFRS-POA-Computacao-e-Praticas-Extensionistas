@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, useMemo, ChangeEvent, FormEvent } from "react";
 import AppHeader from "@/components/AppHeader";
+import { API_BASE_URL, apiFetch } from "@/lib/auth";
 
 interface Project {
   id: number;
@@ -45,8 +46,6 @@ interface ImportSummary {
   totalMarkedForReview: number;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-
 export default function Home() {
   const [eventName, setEventName] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -70,8 +69,8 @@ export default function Home() {
     setError(null);
 
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/events/${eventId}/projects?page=${page}&size=10`
+      const response = await apiFetch(
+        `/api/events/${eventId}/projects?page=${page}&size=10`
       );
 
       if (!response.ok) {
@@ -102,7 +101,7 @@ export default function Home() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/events`);
+      const response = await apiFetch("/api/events");
 
       if (!response.ok) {
         throw new Error(`Erro ao buscar eventos: HTTP ${response.status}`);
@@ -173,7 +172,7 @@ export default function Home() {
     formData.append("eventName", eventName.trim());
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/projects/import`, {
+      const res = await apiFetch("/api/projects/import", {
         method: "POST",
         body: formData,
       });

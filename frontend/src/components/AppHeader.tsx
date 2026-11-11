@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { useAuth } from "@/components/AuthProvider";
 import styles from "./AppHeader.module.css";
 
 export type AdminHeaderItem = "home" | "panel" | "evaluate" | "mentions" | "feedback" | "export";
@@ -34,21 +37,33 @@ function Icon({ name }: { name: string }) {
   return <svg className={styles.icon} viewBox="0 0 16 16" aria-hidden="true">{paths[name]}</svg>;
 }
 
-function Account({ userName }: { userName: string }) {
+function Account({ userName, onSignOut }: { userName: string; onSignOut: () => void }) {
   const initials = userName.split(/\s+/).map((part) => part[0]).slice(0, 2).join("").toUpperCase();
   return (
     <div className={styles.account}>
       <span className={styles.avatar} aria-hidden="true">{initials}</span>
       <span className={styles.userName}>{userName}</span>
-      {/* Sign-out stays presentational until authentication is connected. */}
-      <span className={styles.signOut} aria-label="Sair (demonstração)"><Icon name="logout" />Sair</span>
+      <button className={styles.signOut} type="button" onClick={onSignOut} aria-label="Sair da conta">
+        <Icon name="logout" />Sair
+      </button>
     </div>
   );
 }
 
 export default function AppHeader({ variant, activeItem, userName }: AppHeaderProps) {
+  const { user, signOut } = useAuth();
   const title = variant === "login" ? "Login" : "Gestão de Avaliações";
-  const displayedName = userName ?? (variant === "evaluator" ? "Avaliador MNR" : "Ana Costa");
+  const authenticatedName = user ? `${user.name} ${user.surname}`.trim() : undefined;
+  const displayedName = authenticatedName ?? userName ?? (variant === "evaluator" ? "Avaliador MNR" : "Ana Costa");
+
+  async function handleSignOut() {
+    try {
+      await signOut();
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : "Não foi possível confirmar a saída.";
+      window.alert(`A sessão foi encerrada neste navegador, mas o servidor não confirmou a revogação. ${message}`);
+    }
+  }
 
   return (
     <header className={`${styles.header} ${styles[variant]}`}>
@@ -78,7 +93,9 @@ export default function AppHeader({ variant, activeItem, userName }: AppHeaderPr
         </nav>
       )}
 
-      {(variant === "evaluator" || variant === "admin") && <Account userName={displayedName} />}
+      {(variant === "evaluator" || variant === "admin") && (
+        <Account userName={displayedName} onSignOut={() => void handleSignOut()} />
+      )}
     </header>
   );
 }
