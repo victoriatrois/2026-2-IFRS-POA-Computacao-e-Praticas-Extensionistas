@@ -172,6 +172,43 @@ class EvaluationApiIntegrationTest {
         mockMvc.perform(get("/api/evaluations/by-assignment/{assignmentId}", assignment.getId())
                         .header("Authorization", "Bearer " + otherEvaluatorToken))
                 .andExpect(status().isNotFound());
+
+        // IDOR check: other evaluator cannot view evaluation by ID
+        mockMvc.perform(get("/api/evaluations/{id}", evaluationId)
+                        .header("Authorization", "Bearer " + otherEvaluatorToken))
+                .andExpect(status().isForbidden());
+
+        // Owner evaluator can view their own evaluation by ID
+        mockMvc.perform(get("/api/evaluations/{id}", evaluationId)
+                        .header("Authorization", "Bearer " + evaluatorToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(evaluationId));
+
+        // Admin can view any evaluation by ID
+        mockMvc.perform(get("/api/evaluations/{id}", evaluationId)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(evaluationId));
+
+        // List evaluations: other evaluator sees 0 evaluations
+        mockMvc.perform(get("/api/evaluations")
+                        .header("Authorization", "Bearer " + otherEvaluatorToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+
+        // List evaluations: owner evaluator sees their 1 evaluation
+        mockMvc.perform(get("/api/evaluations")
+                        .header("Authorization", "Bearer " + evaluatorToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(evaluationId));
+
+        // List evaluations: admin sees all evaluations
+        mockMvc.perform(get("/api/evaluations")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(evaluationId));
     }
 
     @Test
