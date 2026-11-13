@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import AppHeader from "@/components/AppHeader";
+import { apiFetch } from "@/lib/auth";
 import { mockProjects } from "./mockData";
 
 export interface ProjectDashboard {
@@ -15,8 +16,6 @@ export interface ProjectDashboard {
   createdAt?: string | null;
   updatedAt?: string | null;
 }
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 function formatDate(value?: string | null) {
   if (!value) return "—";
@@ -36,7 +35,7 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects`);
+      const response = await apiFetch("/api/projects");
       if (!response.ok) throw new Error(`A API respondeu com status ${response.status}.`);
       const data: ProjectDashboard[] = await response.json();
       setProjects(data);

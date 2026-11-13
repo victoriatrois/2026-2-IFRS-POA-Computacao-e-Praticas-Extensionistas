@@ -21,7 +21,8 @@
 .account { display: flex; flex: 0 0 auto; align-items: center; gap: 8px; margin-left: auto; }
 .avatar { display: grid; width: 27px; height: 27px; place-items: center; border-radius: 50%; background: #e6f0e1; color: #31462b; font-size: 10px; font-weight: 700; }
 .userName { color: #31462b; font-size: 12px; white-space: nowrap; }
-.signOut { display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; padding: 7px 9px; border-radius: 6px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.signOut { display: inline-flex; align-items: center; gap: 6px; margin-left: 12px; padding: 7px 9px; border: 0; border-radius: 6px; background: transparent; color: inherit; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.signOut:hover { background: #f0f6ee; }
 .icon { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
 
 .admin { justify-content: space-between; }
