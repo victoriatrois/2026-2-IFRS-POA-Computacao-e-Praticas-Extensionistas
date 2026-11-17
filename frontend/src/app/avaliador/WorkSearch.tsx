@@ -101,7 +101,17 @@ export default function WorkSearch() {
                 <Image className={styles.projectChevron} src="/avaliador/chevron-right.svg" alt="" width={12} height={12} />
               </article>
             ))}
-            {visibleProjects.length === 0 && <p className={styles.emptyProjects}>Nenhum trabalho encontrado.</p>}
+            {visibleProjects.length === 0 && (
+              <div className={styles.emptyProjects}>
+                <span className={styles.emptyProjectsIcon} aria-hidden="true">
+                  <Image src="/avaliador/search.svg" alt="" width={20} height={20} />
+                </span>
+                <h2 className={styles.emptyProjectsTitle}>Nenhum projeto encontrado</h2>
+                <p className={styles.emptyProjectsDescription}>
+                  Altere o termo de busca ou remova filtros para encontrar mais projetos.
+                </p>
+              </div>
+            )}
           </div>
         </aside>
       )}
