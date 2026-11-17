@@ -17,20 +17,6 @@ export interface ProjectDashboard {
   updatedAt?: string | null;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-
-async function fetchDashboardProjects(): Promise<ProjectDashboard[]> {
-  const response = await fetch(
-    `${API_BASE_URL}/api/projects/dashboard`,
-  );
-
-  if (!response.ok) {
-    throw new Error(`A API respondeu com status ${response.status}.`);
-  }
-
-  return response.json();
-}
-
 function formatDate(value?: string | null) {
   if (!value) return "—";
   const date = new Date(value);
@@ -46,28 +32,10 @@ export default function DashboardPage() {
   const [demoMode, setDemoMode] = useState(false);
 
   const loadProjects = useCallback(async () => {
-<<<<<<< HEAD
-  setLoading(true);
-  setError(null);
-
-  try {
-    const data = await fetchDashboardProjects();
-    setProjects(data);
-  } catch (cause) {
-    setError(
-      cause instanceof Error
-        ? cause.message
-        : "Não foi possível carregar os projetos.",
-    );
-  } finally {
-    setLoading(false);
-  }
-}, []);
-=======
     setLoading(true);
     setError(null);
     try {
-      const response = await apiFetch("/api/projects");
+      const response = await apiFetch("/api/projects/dashboard");
       if (!response.ok) throw new Error(`A API respondeu com status ${response.status}.`);
       const data: ProjectDashboard[] = await response.json();
       setProjects(data);
@@ -77,7 +45,6 @@ export default function DashboardPage() {
       setLoading(false);
     }
   }, []);
->>>>>>> origin/main
 
   const displayedProjects = demoMode ? mockProjects : projects;
 

@@ -1,0 +1,164 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background-color: rgba(14, 25, 12, 0.65);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.15s ease-out;
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+  padding: 32px 36px 28px;
+  border-radius: 14px;
+  background-color: #ffffff;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+  animation: slideUp 0.18s ease-out;
+}
+
+.closeButton {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #4a6344;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.closeButton:hover {
+  background-color: #f0f6ee;
+  color: #1c2b18;
+}
+
+.closeButton:focus-visible {
+  outline: 2px solid #29abe2;
+  outline-offset: 2px;
+}
+
+.title {
+  margin: 0 0 10px;
+  color: #1c2b18;
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.description {
+  margin: 0 0 28px;
+  color: #4a6344;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.backButton {
+  min-width: 96px;
+  min-height: 40px;
+  padding: 9px 20px;
+  border: none;
+  border-radius: 6px;
+  background-color: #d93f3f;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, filter 0.15s;
+}
+
+.backButton:hover:not(:disabled) {
+  background-color: #c43232;
+}
+
+.backButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.confirmButton {
+  min-width: 110px;
+  min-height: 40px;
+  padding: 9px 22px;
+  border: none;
+  border-radius: 6px;
+  background-color: #29abe2;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, filter 0.15s;
+}
+
+.confirmButton:hover:not(:disabled) {
+  background-color: #1897cc;
+}
+
+.confirmButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 600px) {
+  .modal {
+    padding: 24px 20px 20px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
+
+  .description {
+    font-size: 13px;
+    margin-bottom: 22px;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+
+  .backButton,
+  .confirmButton {
+    width: 100%;
+  }
+}

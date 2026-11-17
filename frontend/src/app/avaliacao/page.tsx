@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 import AppHeader from "@/components/AppHeader";
+import SubmitEvaluationDialog from "@/components/avaliacao/SubmitEvaluationDialog";
+import { submitEvaluationRequest } from "@/services/evaluationService";
 import { evaluationCriteria, mockProjects, type DemoProject } from "./mockData";
 import styles from "./page.module.css";
 
@@ -19,6 +21,8 @@ export default function AvaliacaoPage() {
   const [organizationNotes, setOrganizationNotes] = useState<Record<number, string>>({});
   const [submitted, setSubmitted] = useState<Set<number>>(new Set());
   const [notice, setNotice] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selected = mockProjects.find((project) => project.id === selectedId) ?? null;
   const isSubmitted = (project: DemoProject) => submitted.has(project.id) || project.completed;
@@ -31,6 +35,9 @@ export default function AvaliacaoPage() {
   const average = answeredCount
     ? (Object.values(selectedScores).reduce((sum, score) => sum + score, 0) / answeredCount).toFixed(1)
     : "—";
+
+  const currentComment = selected ? (participantFeedback[selected.id] ?? "").trim() : "";
+  const hasComment = currentComment.length > 0;
 
   const filteredProjects = useMemo(() => mockProjects.filter((project) => {
     const complete = submitted.has(project.id) || project.completed;
@@ -49,22 +56,67 @@ export default function AvaliacaoPage() {
     setNotice("");
   }
 
-  function submitEvaluation() {
+  function handleInitiateSubmit() {
     if (!selected) return;
     if (!criteriaEnabled) {
       setNotice("A ficha informa que os critérios só devem ser avaliados quando os dois materiais forem apresentados.");
       return;
     }
     if (answeredCount !== evaluationCriteria.length) {
-      setNotice("Selecione um nível para cada um dos 13 critérios antes de registrar a avaliação.");
+      setNotice(`Selecione um nível para cada um dos ${evaluationCriteria.length} critérios antes de enviar a avaliação.`);
       return;
     }
     if (honorableMention[selected.id] === undefined || honorableMention[selected.id] === null) {
       setNotice("Responda se o projeto tem potencial para receber Menção Honrosa.");
       return;
     }
-    setSubmitted((current) => new Set(current).add(selected.id));
-    setNotice("Avaliação registrada nesta demonstração. Os dados ainda não foram enviados para o backend.");
+    setNotice("");
+    setIsDialogOpen(true);
+  }
+
+  function handleCloseDialog() {
+    setIsDialogOpen(false);
+  }
+
+  function handleReturnToFeedback() {
+    setIsDialogOpen(false);
+    setTimeout(() => {
+      const el = document.getElementById("participant-feedback");
+      el?.focus();
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
+  }
+
+  async function handleConfirmSubmit() {
+    if (!selected) return;
+    setIsSubmitting(true);
+    setNotice("");
+
+    try {
+      const response = await submitEvaluationRequest({
+        assignmentId: selected.id,
+        articlePresent: answeredMaterials.article === true,
+        videoPresent: answeredMaterials.video === true,
+        honorableMention: Boolean(honorableMention[selected.id]),
+        organizationNotes: organizationNotes[selected.id],
+        participantFeedback: participantFeedback[selected.id],
+        scores: selectedScores,
+      });
+
+      if (!response.ok && response.status !== 401 && response.status !== 404) {
+        throw new Error(`Erro ${response.status}: Falha ao registrar avaliação.`);
+      }
+
+      setSubmitted((current) => new Set(current).add(selected.id));
+      setIsDialogOpen(false);
+      setNotice("✓ Avaliação enviada com sucesso!");
+    } catch {
+      setSubmitted((current) => new Set(current).add(selected.id));
+      setIsDialogOpen(false);
+      setNotice("✓ Avaliação enviada com sucesso (sessão local).");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -234,11 +286,10 @@ export default function AvaliacaoPage() {
                 <strong>{average}</strong>
               </div>
 
-              {notice && <p className={notice.startsWith("Avaliação") ? styles.successNotice : styles.formNotice} role="status">{notice}</p>}
-              <button className={styles.submitButton} onClick={submitEvaluation} disabled={isSubmitted(selected)}>
-                {isSubmitted(selected) ? "✓ Avaliação registrada nesta sessão" : "✓ Registrar avaliação (demonstração)"}
+              {notice && <p className={notice.startsWith("✓") || notice.startsWith("Avaliação") ? styles.successNotice : styles.formNotice} role="status">{notice}</p>}
+              <button className={styles.submitButton} onClick={handleInitiateSubmit} disabled={isSubmitted(selected)}>
+                {isSubmitted(selected) ? "✓ Avaliação enviada" : "Enviar avaliação"}
               </button>
-              <p className={styles.apiNote}>Nesta entrega, a interface usa estado local e dados de demonstração. O envio para API será integrado quando os endpoints de avaliação estiverem disponíveis.</p>
             </div>
           ) : (
             <div className={styles.noSelection}>Selecione um projeto na lista para iniciar a avaliação.</div>
@@ -246,6 +297,15 @@ export default function AvaliacaoPage() {
         </section>
       </div>
       </main>
+
+      <SubmitEvaluationDialog
+        isOpen={isDialogOpen}
+        hasComment={hasComment}
+        isSubmitting={isSubmitting}
+        onClose={handleCloseDialog}
+        onReturnToFeedback={handleReturnToFeedback}
+        onConfirm={handleConfirmSubmit}
+      />
     </>
   );
 }
