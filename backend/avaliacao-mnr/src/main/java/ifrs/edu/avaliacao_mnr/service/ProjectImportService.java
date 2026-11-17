@@ -3,6 +3,7 @@ package ifrs.edu.avaliacao_mnr.service;
 import ifrs.edu.avaliacao_mnr.dto.ProjectImportDTO;
 import ifrs.edu.avaliacao_mnr.dto.ProjectImportResponseDTO;
 import ifrs.edu.avaliacao_mnr.dto.ProjectResponseDTO;
+import ifrs.edu.avaliacao_mnr.dto.ProjectDashboardDTO;
 import ifrs.edu.avaliacao_mnr.enums.EventStatus;
 import ifrs.edu.avaliacao_mnr.model.Event;
 import ifrs.edu.avaliacao_mnr.model.Project;
@@ -142,6 +143,14 @@ public class ProjectImportService {
         }
         return projects.stream()
                 .map(ProjectResponseDTO::fromEntity)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ProjectDashboardDTO> getDashboardProjects() {
+        return projectRepository.findAll()
+                .stream()
+                .map(ProjectDashboardDTO::fromEntity)
                 .toList();
     }
 

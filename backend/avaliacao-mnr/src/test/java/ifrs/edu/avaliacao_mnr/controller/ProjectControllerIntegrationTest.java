@@ -63,6 +63,14 @@ class ProjectControllerIntegrationTest {
         }
 
         @Test
+        void shouldForbidEvaluatorFromAccessingDashboardProjects() throws Exception {
+                mockMvc.perform(get("/api/projects/dashboard")
+                                .with(SecurityMockMvcRequestPostProcessors.user("evaluator")
+                                        .roles("EVALUATOR")))
+                                .andExpect(status().isForbidden());
+}
+
+        @Test
         void shouldImportProjectsFromInscricoesTesteCsvSuccessfully() throws Exception {
                 when(pdfPageValidationService.getPdfPages(anyString())).thenReturn(2);
                 when(pdfPageValidationService.validatePdfPages(anyString(), anyInt())).thenReturn(true);
