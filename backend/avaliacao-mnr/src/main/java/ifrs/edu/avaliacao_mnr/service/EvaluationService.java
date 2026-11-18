@@ -15,6 +15,7 @@ import ifrs.edu.avaliacao_mnr.repository.EvaluationCriteriaRepository;
 import ifrs.edu.avaliacao_mnr.repository.EvaluationScoreRepository;
 import ifrs.edu.avaliacao_mnr.repository.UserRepository;
 import ifrs.edu.avaliacao_mnr.model.ProjectEvaluatorAssignment;
+import ifrs.edu.avaliacao_mnr.security.AuthenticatedUser;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -85,18 +86,25 @@ public class EvaluationService {
     }
 
     @Transactional(readOnly = true)
-    public List<EvaluationResponseDTO> listAll() {
-        return evaluationRepository.findAll()
-                .stream()
+    public List<EvaluationResponseDTO> listAll(AuthenticatedUser authenticatedUser) {
+        List<Evaluation> evaluations = authenticatedUser.isAdmin()
+                ? evaluationRepository.findAll()
+                : evaluationRepository.findByEvaluatorId(authenticatedUser.getId());
+
+        return evaluations.stream()
                 .map(EvaluationResponseDTO::fromEntity)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public EvaluationResponseDTO findById(Long id) {
+    public EvaluationResponseDTO findById(Long id, AuthenticatedUser authenticatedUser) {
         Evaluation evaluation = evaluationRepository.findById(id)
                 .orElseThrow(() ->
                         new EntityNotFoundException("Evaluation not found: " + id));
+
+        if (!authenticatedUser.isAdmin() && !evaluation.getEvaluator().getId().equals(authenticatedUser.getId())) {
+            throw new AccessDeniedException("You cannot view another evaluator's evaluation");
+        }
 
         return EvaluationResponseDTO.fromEntity(evaluation);
     }
