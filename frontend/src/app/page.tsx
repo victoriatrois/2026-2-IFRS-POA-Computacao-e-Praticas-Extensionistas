@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, useMemo, ChangeEvent, FormEvent } from "react";
 import AppHeader from "@/components/AppHeader";
-import { API_BASE_URL, apiFetch } from "@/lib/auth";
+import { apiFetch } from "@/lib/auth";
 
 interface Project {
   id: number;
