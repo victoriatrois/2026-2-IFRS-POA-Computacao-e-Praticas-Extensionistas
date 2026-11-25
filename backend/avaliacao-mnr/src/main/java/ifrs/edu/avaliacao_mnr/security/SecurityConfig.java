@@ -79,15 +79,29 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.GET, "/api/projects/**")
                             .hasAuthority(Permission.PROJECT_READ.name())
                             .requestMatchers("/users", "/users/**").hasAuthority(Permission.USER_MANAGE.name())
+
+                            // Specific nested routes under /api/events/{eventId}/** must precede generic event matchers
+                            .requestMatchers(HttpMethod.GET, "/api/events/*/projects", "/api/events/*/evaluator/projects")
+                            .hasAuthority(Permission.PROJECT_READ.name())
+                            .requestMatchers("/api/events/*/project-evaluator-assignments", "/api/events/*/project-evaluator-assignments/**")
+                            .hasAuthority(Permission.PROJECT_ASSIGN.name())
+                            .requestMatchers(HttpMethod.GET, "/api/events/*/evaluation-criteria", "/api/events/*/evaluation-criteria/**")
+                            .hasAuthority(Permission.EVALUATION_READ.name())
+                            .requestMatchers("/api/events/*/evaluation-criteria", "/api/events/*/evaluation-criteria/**")
+                            .hasAuthority(Permission.CRITERIA_MANAGE.name())
+
+                            // Generic event management
                             .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/**")
                             .hasAuthority(Permission.EVENT_READ.name())
                             .requestMatchers("/api/events", "/api/events/**")
                             .hasAuthority(Permission.EVENT_MANAGE.name())
-                            .requestMatchers("/api/criteria/**").hasAuthority(Permission.CRITERIA_MANAGE.name())
+
                             .requestMatchers(HttpMethod.GET, "/api/evaluations/**")
                             .hasAuthority(Permission.EVALUATION_READ.name())
                             .requestMatchers("/api/evaluations/**")
                             .hasAuthority(Permission.EVALUATION_WRITE.name())
+                            .requestMatchers(HttpMethod.GET, "/videos/**")
+                            .hasAuthority(Permission.PROJECT_READ.name())
                             .anyRequest().authenticated();
                 })
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -2,6 +2,7 @@ package ifrs.edu.avaliacao_mnr.security;
 
 import ifrs.edu.avaliacao_mnr.authorization.RolePermissions;
 import ifrs.edu.avaliacao_mnr.enums.Permission;
+import ifrs.edu.avaliacao_mnr.enums.Role;
 import ifrs.edu.avaliacao_mnr.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -33,6 +34,7 @@ public final class AuthenticatedUser implements UserDetails {
     public String getSurname() { return user.getSurname(); }
     public String getCpf() { return user.getCpf(); }
     public String getRole() { return user.getRole().name(); }
+    public boolean isAdmin() { return user.getRole() == Role.ADMIN; }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() { return authorities; }

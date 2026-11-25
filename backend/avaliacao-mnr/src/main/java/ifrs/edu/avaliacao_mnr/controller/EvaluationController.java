@@ -44,8 +44,10 @@ public class EvaluationController {
             @ApiResponse(responseCode = "401", description = "Access token is missing, invalid, or expired"),
             @ApiResponse(responseCode = "403", description = "Evaluation-read permission required")
     })
-    public ResponseEntity<List<EvaluationResponseDTO>> getAllEvaluations() {
-        return ResponseEntity.ok(evaluationService.listAll());
+    public ResponseEntity<List<EvaluationResponseDTO>> getAllEvaluations(
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser
+    ) {
+        return ResponseEntity.ok(evaluationService.listAll(authenticatedUser));
     }
 
     @GetMapping("/{id}")
@@ -62,9 +64,10 @@ public class EvaluationController {
             @ApiResponse(responseCode = "404", description = "Evaluation not found")
     })
     public ResponseEntity<EvaluationResponseDTO> getEvaluationById(
-            @PathVariable Long id
+            @PathVariable Long id,
+            @AuthenticationPrincipal AuthenticatedUser authenticatedUser
     ) {
-        return ResponseEntity.ok(evaluationService.findById(id));
+        return ResponseEntity.ok(evaluationService.findById(id, authenticatedUser));
     }
 
     @GetMapping("/by-assignment/{assignmentId}")
