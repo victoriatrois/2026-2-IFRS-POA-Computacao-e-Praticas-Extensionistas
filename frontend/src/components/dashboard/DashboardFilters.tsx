@@ -130,8 +130,8 @@ export default function DashboardFilters({
           className={styles.searchInput}
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Buscar por projeto, participante, CPF..."
-          aria-label="Buscar por projeto, participante ou CPF"
+          placeholder="Buscar por projeto ou participante..."
+          aria-label="Buscar por projeto ou participante"
         />
       </div>
     </div>
