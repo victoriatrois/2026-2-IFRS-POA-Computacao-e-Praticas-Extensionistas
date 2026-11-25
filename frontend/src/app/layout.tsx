@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import AuthGate from "@/components/AuthGate";
 import { AuthProvider } from "@/components/AuthProvider";
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
   description: "Plataforma de avaliação da Mostra Nacional de Robótica.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="pt-BR"

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, useMemo, ChangeEvent, FormEvent } from "react";
 import AppHeader from "@/components/AppHeader";
-import { apiFetch } from "@/lib/auth";
+import { API_BASE_URL, apiFetch } from "@/lib/auth";
 
 interface Project {
   id: number;
@@ -49,8 +49,6 @@ interface ImportSummary {
 interface ProjectImportResponse extends ImportSummary {
   projects: Project[];
 }
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export default function Home() {
   const [eventName, setEventName] = useState("");
