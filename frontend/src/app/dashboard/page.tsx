@@ -46,38 +46,22 @@ export default function DashboardPage() {
   const [demoMode, setDemoMode] = useState(false);
 
   const loadProjects = useCallback(async () => {
-<<<<<<< HEAD
-  setLoading(true);
-  setError(null);
-
-  try {
-    const data = await fetchDashboardProjects();
-    setProjects(data);
-  } catch (cause) {
-    setError(
-      cause instanceof Error
-        ? cause.message
-        : "Não foi possível carregar os projetos.",
-    );
-  } finally {
-    setLoading(false);
-  }
-}, []);
-=======
     setLoading(true);
     setError(null);
+
     try {
-      const response = await apiFetch("/api/projects");
-      if (!response.ok) throw new Error(`A API respondeu com status ${response.status}.`);
-      const data: ProjectDashboard[] = await response.json();
+      const data = await fetchDashboardProjects();
       setProjects(data);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível carregar os projetos.");
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Não foi possível carregar os projetos.",
+      );
     } finally {
       setLoading(false);
     }
   }, []);
->>>>>>> origin/main
 
   const displayedProjects = demoMode ? mockProjects : projects;
 

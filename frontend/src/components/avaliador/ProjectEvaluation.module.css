@@ -1,0 +1,548 @@
+/* Componentized styles for Project Evaluation */
+
+.evaluationPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  animation: fadeIn 200ms ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ⚠️ Validation Warning Banner */
+.validationWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 20px;
+  background-color: #ffffff;
+  border: 1px solid #fef08a;
+  border-left: 4px solid #eab308;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.warningIconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  color: #eab308;
+  margin-top: 2px;
+}
+
+.warningContent {
+  flex: 1;
+}
+
+.warningTitle {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1c2b18;
+}
+
+.warningDescription {
+  margin: 0;
+  font-size: 13px;
+  color: #587a4e;
+}
+
+.closeWarningButton {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 140ms ease;
+}
+
+.closeWarningButton:hover {
+  color: #1e293b;
+}
+
+/* Success notice */
+.successBanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-left: 4px solid #22c55e;
+  border-radius: 8px;
+  color: #166534;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 1. Project Header Card */
+.headerCard {
+  background: #ffffff;
+  border: 1px solid rgba(60, 181, 74, 0.2);
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.projectTitle {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: #111827;
+  line-height: 1.25;
+}
+
+.metaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.projectLevel {
+  font-size: 14px;
+  font-weight: 700;
+  color: #3cb54a;
+}
+
+.projectTeamInstitution {
+  font-size: 14px;
+  color: #4b5563;
+  margin: 0;
+}
+
+.projectLocation {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.headerActionsRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.actionButtonsGroup {
+  display: flex;
+  gap: 12px;
+}
+
+.materialLinkButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #ffffff;
+  border: 1px solid rgba(60, 181, 74, 0.35);
+  border-radius: 6px;
+  color: #1c2b18;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.materialLinkButton:hover {
+  background-color: #f4f8f2;
+  border-color: #29abe2;
+  color: #0284c7;
+}
+
+.headerProgressSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.progressLabel {
+  font-size: 13px;
+  color: #587a4e;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.progressBarTrack {
+  width: 220px;
+  height: 8px;
+  background-color: #e6f0e1;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  background-color: #29abe2;
+  border-radius: inherit;
+  transition: width 250ms ease;
+}
+
+/* 2. Criteria Section */
+.criteriaCard {
+  background: #f4f9f7;
+  border: 1px solid rgba(60, 181, 74, 0.2);
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.criteriaHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.criteriaHeaderTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.criteriaTitleWithIcon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.criteriaStarIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: #f59e0b;
+  color: #ffffff;
+  border-radius: 50%;
+  font-size: 13px;
+}
+
+.criteriaMainTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1c2b18;
+}
+
+.criteriaCounterRight {
+  font-size: 13px;
+  color: #0284c7;
+  font-weight: 600;
+}
+
+.criteriaSubtitles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.criteriaSubtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #587a4e;
+}
+
+.criteriaTip {
+  margin: 0;
+  font-size: 12px;
+  color: #0284c7;
+}
+
+.criteriaList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Individual Criterion Card */
+.criterionCard {
+  background: #ffffff;
+  border: 1px solid rgba(60, 181, 74, 0.2);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.criterionCard:hover {
+  border-color: rgba(41, 171, 226, 0.4);
+}
+
+.criterionTitleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.criterionBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  background-color: #e6f0e1;
+  color: #1c2b18;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.criterionHeaderInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.criterionTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1c2b18;
+}
+
+.criterionPrompt {
+  margin: 0;
+  font-size: 13px;
+  color: #587a4e;
+  line-height: 1.45;
+}
+
+/* Rubric Level Grid */
+.levelGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.levelOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 52px;
+  padding: 8px 4px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 140ms ease;
+  user-select: none;
+}
+
+.levelOption:hover {
+  border-color: #29abe2;
+  background-color: #f0f9ff;
+}
+
+.levelSelected {
+  border: 2px solid #29abe2 !important;
+  background-color: #e0f2fe !important;
+}
+
+.levelNumber {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1c2b18;
+}
+
+.levelSelected .levelNumber {
+  color: #0284c7;
+}
+
+.levelLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.levelSelected .levelLabel {
+  color: #0284c7;
+}
+
+/* Guidance disclosure/tooltip */
+.guidancePanel {
+  margin-top: 8px;
+  padding: 10px 14px;
+  background-color: #f8fafc;
+  border-left: 3px solid #29abe2;
+  border-radius: 4px;
+  animation: fadeIn 150ms ease;
+}
+
+.guidancePanel strong {
+  display: block;
+  font-size: 12px;
+  color: #0284c7;
+  margin-bottom: 2px;
+}
+
+.guidancePanel p {
+  margin: 0;
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.4;
+}
+
+/* 3. Constructive Feedback Section */
+.feedbackCard {
+  background: #ffffff;
+  border: 1px solid rgba(60, 181, 74, 0.2);
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feedbackTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1c2b18;
+}
+
+.feedbackSubtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #587a4e;
+}
+
+.feedbackTextarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 14px;
+  border: 1px solid rgba(60, 181, 74, 0.3);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1c2b18;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.feedbackTextarea:focus {
+  outline: none;
+  border-color: #29abe2;
+  box-shadow: 0 0 0 3px rgba(41, 171, 226, 0.15);
+}
+
+/* 4. Footer Section */
+.footerContainer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 24px;
+  padding: 16px 0;
+}
+
+.evaluationSummary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #587a4e;
+  font-size: 13px;
+}
+
+.averageScoreBadge {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1c2b18;
+}
+
+.submitEvaluationButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 28px;
+  background-color: #29abe2;
+  border: none;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(41, 171, 226, 0.25);
+  transition: all 140ms ease;
+}
+
+.submitEvaluationButton:hover {
+  background-color: #168fbe;
+  transform: translateY(-1px);
+}
+
+.submitEvaluationButton:active {
+  transform: translateY(0);
+}
+
+.submittedButton {
+  background-color: #16a34a;
+  cursor: default;
+}
+
+.submittedButton:hover {
+  background-color: #16a34a;
+  transform: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .levelGrid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .levelOption {
+    padding: 6px 2px;
+    min-height: 46px;
+  }
+  .levelLabel {
+    font-size: 8px;
+  }
+  .headerProgressSection {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+  .progressBarTrack {
+    flex: 1;
+    width: auto;
+  }
+  .footerContainer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .submitEvaluationButton {
+    width: 100%;
+  }
+}
