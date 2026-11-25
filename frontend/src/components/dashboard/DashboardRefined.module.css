@@ -1,0 +1,470 @@
+/* Refined Dashboard Styles for Issue #90 */
+
+.dashboardPage {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-family: Arial, Helvetica, sans-serif;
+  padding-bottom: 60px;
+}
+
+.dashboardContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Header title section */
+.dashboardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dashboardHeaderTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.dashboardTitle {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.5px;
+}
+
+.dashboardSubtitle {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggleDemoButton {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0284c7;
+  background-color: #ffffff;
+  border: 1px solid #bae6fd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.toggleDemoButton:hover {
+  background-color: #f0f9ff;
+  border-color: #38bdf8;
+}
+
+.refreshButton {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.refreshButton:hover {
+  background-color: #f1f5f9;
+}
+
+/* 1. Metrics Grid (4 cards) */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.metricCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 22px;
+  border-radius: 8px;
+  border: 1px solid;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.metricCard:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.metricCardProcessed {
+  background-color: #ebf8ff;
+  border-color: #bae6fd;
+}
+
+.metricCardValidated {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.metricCardPending {
+  background-color: #fefce8;
+  border-color: #fef08a;
+}
+
+.metricCardRejected {
+  background-color: #fff1f2;
+  border-color: #fecdd3;
+}
+
+.metricIconCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.metricIconProcessed {
+  background-color: #dbeafe;
+  color: #0284c7;
+}
+
+.metricIconValidated {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+.metricIconPending {
+  background-color: #fef9c3;
+  color: #ca8a04;
+}
+
+.metricIconRejected {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.metricContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metricTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.metricValue {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #111827;
+}
+
+.metricValueValidated {
+  color: #16a34a;
+}
+
+.metricValueRejected {
+  color: #dc2626;
+}
+
+/* 2. Filters & Search Bar Row */
+.filterSearchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.filtersGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filterPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 16px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.filterPill:hover {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.filterPillActive {
+  background-color: #29abe2 !important;
+  border-color: #29abe2 !important;
+  color: #ffffff !important;
+}
+
+.filterPillActive svg,
+.filterPillActive span {
+  color: #ffffff !important;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(380px, 100%);
+  height: 40px;
+  padding: 0 14px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.searchBox:focus-within {
+  border-color: #29abe2;
+  box-shadow: 0 0 0 3px rgba(41, 171, 226, 0.15);
+}
+
+.searchIcon {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.searchInput {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 13px;
+  color: #1e293b;
+  background: transparent;
+}
+
+.searchInput::placeholder {
+  color: #94a3b8;
+}
+
+/* 3. Table Section */
+.tableCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.projectsTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.tableHeader {
+  background-color: #eaf3eb;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tableHeader th {
+  padding: 14px 20px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.tableRow {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 120ms ease;
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+.tableRow:hover {
+  background-color: #f8fafc;
+}
+
+.tableCell {
+  padding: 18px 20px;
+  vertical-align: middle;
+}
+
+/* Nível Badges (N1, N2, N3, N4) */
+.levelBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.levelBadgeN1 {
+  background-color: #dbeafe;
+  color: #0284c7;
+}
+
+.levelBadgeN2 {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.levelBadgeN3 {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.levelBadgeN4 {
+  background-color: #ede9fe;
+  color: #6d28d9;
+}
+
+/* Project Info Column */
+.projectInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 580px;
+}
+
+.projectTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.45;
+}
+
+.projectSubtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+/* Status Badges */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.statusPending {
+  background-color: #fef9c3;
+  color: #854d0e;
+}
+
+.statusValidated {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.statusRejected {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Actions Column & Diagnostic Button */
+.diagnosticButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 140ms ease;
+}
+
+.diagnosticButton:hover {
+  background-color: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.diagnosticIcon {
+  color: #475569;
+}
+
+/* Empty state */
+.emptyProjectsMessage {
+  padding: 48px 24px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .metricsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .metricsGrid {
+    grid-template-columns: 1fr;
+  }
+  .filterSearchRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .searchBox {
+    width: 100%;
+  }
+  .filtersGroup {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+}
