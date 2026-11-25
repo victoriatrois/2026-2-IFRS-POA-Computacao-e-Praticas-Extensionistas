@@ -50,8 +50,6 @@ interface ProjectImportResponse extends ImportSummary {
   projects: Project[];
 }
 
-
-
 export default function Home() {
   const [eventName, setEventName] = useState("");
   const [file, setFile] = useState<File | null>(null);
